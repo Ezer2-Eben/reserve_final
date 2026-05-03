@@ -1,0 +1,36 @@
+# General
+.vscode/
+.idea/
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+
+# Java / Spring Boot (reserve)
+reserve/target/
+reserve/*.class
+reserve/.settings/
+reserve/.project
+reserve/.classpath
+reserve/bin/
+
+# Flutter / Dart (mobile)
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/*.p12
+mobile/*.js
+mobile/*.js.map
+mobile/*.js_
+mobile/*.js_.map
+mobile/*.node
+mobile/*.pyc
+mobile/__pycache__/
+mobile/.pub-cache/
+mobile/.pub/
+
+# SDKs
+flutter_sdk/

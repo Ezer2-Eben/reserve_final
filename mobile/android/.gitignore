@@ -1,0 +1,18 @@
+# Flutter
+.dart_tool/
+.build/
+build/
+pubspec.lock
+
+# Android
+android/build/
+android/.gradle/
+*.hprof
+
+# iOS / macOS
+ios/Pods/
+macos/Pods/
+
+# IDE
+.idea/
+.vscode/

@@ -1,0 +1,31 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0967D2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <circle cx="60" cy="60" r="55" fill="url(#primaryGradient)" stroke="#E5E7EB" stroke-width="2"/>
+  
+  <rect x="25" y="35" width="70" height="50" rx="8" fill="white" fill-opacity="0.95" stroke="#0967D2" stroke-width="2"/>
+  
+  <path d="M40 45 Q50 40 60 45 Q70 40 80 45 Q85 50 80 60 Q70 65 60 60 Q50 65 40 60 Q35 50 40 45 Z" 
+        fill="url(#accentGradient)" fill-opacity="0.8" stroke="#10B981" stroke-width="2"/>
+  
+  <path d="M55 50 Q60 45 65 50 Q60 55 55 50" fill="white" fill-opacity="0.9"/>
+  
+  <circle cx="60" cy="55" r="4" fill="#EF4444" stroke="white" stroke-width="1.5"/>
+  
+  <g transform="translate(75, 30)">
+    <path d="M0,-6 L1.5,-1.5 L6,0 L1.5,1.5 L0,6 L-1.5,1.5 L-6,0 L-1.5,-1.5 Z" 
+          fill="#F59E0B" stroke="white" stroke-width="0.5"/>
+  </g>
+  
+  <text x="60" y="105" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="14" font-weight="bold" fill="#0967D2" letter-spacing="1">RÉSERVES</text>
+</svg>
