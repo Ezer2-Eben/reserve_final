@@ -20,5 +20,5 @@ COPY --from=build /app/target/webApp-reserve-admin-0.0.1-SNAPSHOT.jar app.jar
 # Exposer le port (Render écoute le port configuré ou 9190)
 EXPOSE 9190
 
-# Commande de démarrage
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Commande de démarrage avec le profil production activé
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
