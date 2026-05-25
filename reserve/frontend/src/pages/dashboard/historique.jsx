@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
     Badge,
     Box,
@@ -26,6 +25,7 @@ import {
     Tooltip,
     IconButton,
 } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 import { FiSearch, FiRefreshCw, FiActivity, FiLogIn, FiPlusCircle, FiEdit2, FiTrash2, FiUpload } from 'react-icons/fi';
 
 import { journalService } from '../../services/apiService';

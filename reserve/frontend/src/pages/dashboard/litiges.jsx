@@ -6,9 +6,10 @@ import {
   useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+
 import {
-  FiAlertCircle, FiPlus, FiEdit2, FiTrash2, FiFileText, FiShield,
-  FiUser, FiCalendar, FiMapPin
+  FiPlus, FiEdit2, FiTrash2, FiShield,
+  FiCalendar, FiMapPin
 } from 'react-icons/fi';
 import { litigeService, reserveService } from '../../services/apiService';
 

@@ -6,6 +6,7 @@ import {
   useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+
 import {
   FiAlertTriangle, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiUser,
   FiCalendar
