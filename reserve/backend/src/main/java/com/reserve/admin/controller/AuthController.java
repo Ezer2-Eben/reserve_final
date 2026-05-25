@@ -15,6 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}) // Adapte selon ton frontend
@@ -26,10 +29,16 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private com.reserve.admin.service.JournalActiviteService journalService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -60,6 +69,9 @@ public class AuthController {
             LoginResponse response = new LoginResponse(token, utilisateur.getUsername(), utilisateur.getRole().name());
             logger.debug("Authentification réussie pour {} - rôle: {}", utilisateur.getUsername(), utilisateur.getRole().name());
             System.out.println(">>> DEBUG: Authentification réussie !");
+            journalService.logAction("LOGIN", "AUTH",
+                    "Connexion de l'utilisateur '" + utilisateur.getUsername() + "' (rôle: " + utilisateur.getRole().name() + ")",
+                    utilisateur.getUsername());
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -68,5 +80,30 @@ public class AuthController {
             // Renvoyer une réponse JSON structurée pour faciliter les traitements côté frontend
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Nom d'utilisateur ou mot de passe incorrect."));
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+        
+        if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.length() < 8) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Email invalide ou mot de passe trop court (min. 8 caractères)."));
+        }
+        
+        Optional<Utilisateur> userOpt = utilisateurRepository.findByEmailIgnoreCase(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(java.util.Map.of("message", "Aucun utilisateur trouvé avec cette adresse email."));
+        }
+        
+        Utilisateur user = userOpt.get();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        utilisateurRepository.save(user);
+        
+        journalService.logAction("UPDATE", "UTILISATEUR",
+                "Réinitialisation autonome du mot de passe par oubli pour '" + user.getUsername() + "'",
+                user.getUsername());
+                
+        return ResponseEntity.ok(java.util.Map.of("message", "Votre mot de passe a été réinitialisé avec succès !"));
     }
 }

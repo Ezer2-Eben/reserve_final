@@ -16,14 +16,129 @@ import {
   VStack,
   ScaleFade,
   SlideFade,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiKey } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
 import Logo from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/apiService';
 
+// ─── Modal Mot de passe oublié ───────────────────────────────────────────────
+const ForgotPasswordModal = ({ isOpen, onClose }) => {
+  const [email, setEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !newPassword) return;
+    if (newPassword.length < 8) {
+      toast({
+        title: 'Validation',
+        description: 'Le mot de passe doit contenir au moins 8 caractères.',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      await authService.forgotPassword(email, newPassword);
+      toast({
+        title: 'Mot de passe réinitialisé',
+        description: 'Votre mot de passe a été modifié avec succès !',
+        status: 'success',
+        duration: 4000,
+        isClosable: true,
+      });
+      onClose();
+    } catch (err) {
+      toast({
+        title: 'Erreur',
+        description: err.response?.data?.message || err?.message || 'Réinitialisation impossible.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+      <ModalOverlay bg="blackAlpha.400" backdropFilter="blur(8px)" />
+      <ModalContent>
+        <ModalHeader>Mot de passe oublié ?</ModalHeader>
+        <ModalCloseButton />
+        <form onSubmit={handleSubmit}>
+          <ModalBody>
+            <VStack spacing={4}>
+              <Text fontSize="sm" color="gray.500">
+                Saisissez votre adresse e-mail enregistrée et définissez votre nouveau mot de passe.
+              </Text>
+              
+              <FormControl isRequired>
+                <FormLabel>Adresse e-mail</FormLabel>
+                <InputGroup>
+                  <Input
+                    type="email"
+                    placeholder="email@exemple.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </InputGroup>
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>Nouveau mot de passe</FormLabel>
+                <InputGroup>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Min. 8 caractères"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <InputRightElement>
+                    <IconButton
+                      variant="ghost"
+                      size="sm"
+                      icon={showPassword ? <FiEyeOff /> : <FiEye />}
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label="Afficher/masquer"
+                    />
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onClose}>Annuler</Button>
+            <Button colorScheme="brand" type="submit" isLoading={isLoading} leftIcon={<FiKey />}>
+              Réinitialiser
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+// ─── LoginPage principale ────────────────────────────────────────────────────
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({
     username: '',
@@ -35,6 +150,7 @@ const LoginPage = () => {
   const { login, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const { isOpen: isForgotOpen, onOpen: onForgotOpen, onClose: onForgotClose } = useDisclosure();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -231,7 +347,7 @@ const LoginPage = () => {
               </FormControl>
 
               <Flex w="100%" justify="flex-end">
-                <Link fontSize="sm" color="brand.600" fontWeight="500" _hover={{ textDecoration: 'underline' }}>
+                <Link fontSize="sm" color="brand.600" fontWeight="500" onClick={onForgotOpen} _hover={{ textDecoration: 'underline', cursor: 'pointer' }}>
                   Mot de passe oublié ?
                 </Link>
               </Flex>
@@ -255,6 +371,8 @@ const LoginPage = () => {
           </form>
         </VStack>
       </Flex>
+      
+      <ForgotPasswordModal isOpen={isForgotOpen} onClose={onForgotClose} />
     </Flex>
   );
 };

@@ -24,17 +24,15 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         Optional<Utilisateur> utilisateurOptional = utilisateurRepository.findByUsernameIgnoreCase(username);
 
         if (utilisateurOptional.isPresent()) {
-            // L'utilisateur existe, vérifier le mot de passe
             Utilisateur utilisateur = utilisateurOptional.get();
             if (passwordEncoder.matches(password, utilisateur.getPassword())) {
-                return utilisateur; // Connexion réussie
+                return utilisateur;
             } else {
-                return null; // Mot de passe incorrect
+                return null;
             }
         } else {
-            // L'utilisateur n'existe pas, le créer si ce n'est pas "admin"
             if ("admin".equalsIgnoreCase(username)) {
-                return null; // Interdit la création d'admin via cette méthode
+                return null;
             }
             Utilisateur nouvelUtilisateur = new Utilisateur(username, username, passwordEncoder.encode(password), Role.USER);
             return utilisateurRepository.save(nouvelUtilisateur);
@@ -43,8 +41,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
     @Override
     public Utilisateur enregistrer(Utilisateur utilisateur) {
-        // ✅ Encoder le mot de passe UNE SEULE FOIS ici
         utilisateur.setPassword(passwordEncoder.encode(utilisateur.getPassword()));
+        if (utilisateur.getEmail() == null || utilisateur.getEmail().isEmpty()) {
+            utilisateur.setEmail(utilisateur.getUsername() + "@reserve.local");
+        }
         return utilisateurRepository.save(utilisateur);
     }
 
@@ -61,5 +61,53 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public List<Utilisateur> listerUtilisateurs() {
         return utilisateurRepository.findAll();
+    }
+
+    @Override
+    public Optional<Utilisateur> getById(Long id) {
+        return utilisateurRepository.findById(id);
+    }
+
+    @Override
+    public Utilisateur updateUtilisateur(Long id, Utilisateur data) {
+        return utilisateurRepository.findById(id).map(existing -> {
+            if (data.getUsername() != null && !data.getUsername().isEmpty()) {
+                existing.setUsername(data.getUsername());
+            }
+            if (data.getEmail() != null && !data.getEmail().isEmpty()) {
+                existing.setEmail(data.getEmail());
+            }
+            if (data.getRole() != null) {
+                existing.setRole(data.getRole());
+            }
+            existing.setActif(data.isActif());
+            return utilisateurRepository.save(existing);
+        }).orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'id: " + id));
+    }
+
+    @Override
+    public void deleteUtilisateur(Long id) {
+        if (!utilisateurRepository.existsById(id)) {
+            throw new RuntimeException("Utilisateur non trouvé avec l'id: " + id);
+        }
+        utilisateurRepository.deleteById(id);
+    }
+
+    @Override
+    public void resetPassword(Long id, String newPassword) {
+        utilisateurRepository.findById(id).ifPresentOrElse(user -> {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            utilisateurRepository.save(user);
+        }, () -> {
+            throw new RuntimeException("Utilisateur non trouvé avec l'id: " + id);
+        });
+    }
+
+    @Override
+    public Utilisateur toggleActif(Long id) {
+        return utilisateurRepository.findById(id).map(user -> {
+            user.setActif(!user.isActif());
+            return utilisateurRepository.save(user);
+        }).orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'id: " + id));
     }
 }

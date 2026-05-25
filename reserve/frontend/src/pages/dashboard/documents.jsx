@@ -46,7 +46,7 @@ import {
 } from 'react-icons/fi';
 
 import { useAuth } from '../../context/AuthContext';
-import { documentService, reserveService } from '../../services/apiService';
+import { documentService, reserveService, projetService } from '../../services/apiService';
 
 const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -54,22 +54,28 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
     typeFichier: '',
     url: '',
     reserveId: '',
+    projetId: '',
   });
   const [reserves, setReserves] = useState([]);
+  const [projets, setProjets] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
 
-  // Charger les réserves pour le select
+  // Charger les réserves et projets pour le select
   useEffect(() => {
-    const fetchReserves = async () => {
+    const fetchReservesAndProjets = async () => {
       try {
-        const data = await reserveService.getAll();
-        setReserves(data);
+        const [reservesData, projetsData] = await Promise.all([
+          reserveService.getAll(),
+          projetService.getAll()
+        ]);
+        setReserves(reservesData);
+        setProjets(projetsData);
       } catch (error) {
-        console.error('Erreur lors du chargement des réserves:', error);
+        console.error('Erreur lors du chargement des réserves et projets:', error);
       }
     };
-    fetchReserves();
+    fetchReservesAndProjets();
   }, []);
 
   useEffect(() => {
@@ -79,6 +85,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
         typeFichier: document.typeFichier || '',
         url: document.url || '',
         reserveId: document.reserve?.id || '',
+        projetId: document.projet?.id || '',
       });
     } else {
       setFormData({
@@ -86,6 +93,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
         typeFichier: '',
         url: '',
         reserveId: '',
+        projetId: '',
       });
     }
   }, [document, isOpen]);
@@ -97,7 +105,8 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
     try {
       const submitData = {
         ...formData,
-        reserve: { id: parseInt(formData.reserveId) }
+        reserve: { id: parseInt(formData.reserveId) },
+        projet: formData.projetId ? { id: parseInt(formData.projetId) } : null
       };
 
       if (document) {
@@ -200,6 +209,24 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
                 </FormControl>
               </HStack>
 
+              <HStack spacing={4} w="full">
+                <FormControl>
+                  <FormLabel>Projet associé (Optionnel)</FormLabel>
+                  <Select
+                    name="projetId"
+                    value={formData.projetId}
+                    onChange={handleChange}
+                    placeholder="Aucun projet"
+                  >
+                    {projets.map((projet) => (
+                      <option key={projet.id} value={projet.id}>
+                        {projet.nomProjet} ({projet.statut})
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </HStack>
+
               <FormControl isRequired>
                 <FormLabel>URL du fichier</FormLabel>
                 <Input
@@ -269,7 +296,8 @@ const Documents = () => {
     const filtered = documents.filter(document =>
       document.nomFichier?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       document.typeFichier?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      document.reserve?.nom?.toLowerCase().includes(searchTerm.toLowerCase())
+      document.reserve?.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      document.projet?.nomProjet?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredDocuments(filtered);
   }, [searchTerm, documents]);
@@ -378,6 +406,7 @@ const Documents = () => {
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Nom du fichier</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Type</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Réserve</Th>
+                      <Th px={4} py={3} fontWeight="semibold" color="gray.700">Projet associé</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Actions</Th>
                   </Tr>
                 </Thead>
@@ -392,6 +421,15 @@ const Documents = () => {
                         <Td px={4} py={3} fontWeight="medium">{document.nomFichier}</Td>
                         <Td px={4} py={3}>{getTypeBadge(document.typeFichier)}</Td>
                         <Td px={4} py={3}>{document.reserve?.nom || 'N/A'}</Td>
+                        <Td px={4} py={3}>
+                          {document.projet ? (
+                            <Badge colorScheme="teal" variant="outline">
+                              {document.projet.nomProjet}
+                            </Badge>
+                          ) : (
+                            <Text color="gray.400" fontStyle="italic" fontSize="sm">Aucun</Text>
+                          )}
+                        </Td>
                       <Td px={4} py={3}>
                         <HStack spacing={2}>
                             {document.url ? <IconButton

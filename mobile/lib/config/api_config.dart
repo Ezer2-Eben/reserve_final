@@ -6,15 +6,23 @@
 ///   - Utilisez ipconfig (Windows) pour trouver votre IP locale.
 
 class ApiConfig {
-  /// Adresse IP du serveur backend Spring Boot.
-  /// Changez cette valeur selon votre configuration réseau.
+  /// URL de production sur Render (ex: 'https://mon-backend.onrender.com').
+  /// Laissez vide pour utiliser l'IP locale ci-dessous en développement.
+  static const String productionUrl = '';
+
+  /// Adresse IP du serveur backend Spring Boot en local.
   static const String serverIp = '192.168.1.70';
 
-  /// Port du backend Spring Boot (configuré dans application.properties)
+  /// Port du backend Spring Boot local.
   static const int serverPort = 9190;
 
-  /// URL de base de l'API
-  static String get baseUrl => 'http://$serverIp:$serverPort';
+  /// URL de base de l'API dynamique
+  static String get baseUrl {
+    if (productionUrl.isNotEmpty) {
+      return productionUrl.endsWith('/') ? productionUrl.substring(0, productionUrl.length - 1) : productionUrl;
+    }
+    return 'http://$serverIp:$serverPort';
+  }
 
   /// Endpoints mobiles (sans JWT)
   static String get mobileReservesUrl => '$baseUrl/api/mobile/reserves';

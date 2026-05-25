@@ -42,6 +42,9 @@ import {
   FiX,
   FiBell,
   FiNavigation,
+  FiShield,
+  FiActivity,
+  FiBarChart2,
 } from 'react-icons/fi';
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 
@@ -73,6 +76,9 @@ const icons = {
   FiFolder,
   FiClock,
   FiNavigation,
+  FiShield,
+  FiActivity,
+  FiBarChart2,
 };
 
 const menuItems = [
@@ -81,6 +87,9 @@ const menuItems = [
   { name: 'Alertes', icon: 'FiAlertTriangle', path: '/dashboard/alertes', roles: ['ADMIN', 'USER'] },
   { name: 'Projets', icon: 'FiFolder', path: '/dashboard/projets', roles: ['ADMIN', 'USER'] },
   { name: 'Documents', icon: 'FiFileText', path: '/dashboard/documents', roles: ['ADMIN', 'USER'] },
+  { name: 'Litiges', icon: 'FiShield', path: '/dashboard/litiges', roles: ['ADMIN', 'USER'] },
+  { name: 'Occupations', icon: 'FiActivity', path: '/dashboard/occupations', roles: ['ADMIN', 'USER'] },
+  { name: 'Rapports', icon: 'FiBarChart2', path: '/dashboard/rapports', roles: ['ADMIN', 'USER'] },
   { name: 'Historique', icon: 'FiClock', path: '/dashboard/historique', roles: ['ADMIN', 'USER'] },
   { name: 'Exploration', icon: 'FiNavigation', path: '/exploration', roles: ['ADMIN', 'USER'] },
   { name: 'Utilisateurs', icon: 'FiUsers', path: '/dashboard/utilisateurs', roles: ['ADMIN'] },
@@ -90,6 +99,9 @@ const getPageTitle = (path) => {
   const item = menuItems.find(i => i.path === path);
   if (item) return item.name;
   if (path === '/exploration') return 'Exploration Géographique';
+  if (path === '/dashboard/litiges') return 'Gestion des Conflits & Litiges';
+  if (path === '/dashboard/occupations') return 'Suivi des Occupations';
+  if (path === '/dashboard/rapports') return 'Rapports & Statistiques';
   if (path.includes('/dashboard/reserves/')) return 'Détails Réserve';
   return 'Tableau de bord';
 };

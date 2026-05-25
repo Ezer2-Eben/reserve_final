@@ -7,9 +7,13 @@ import { useAuth } from '../context/AuthContext';
 import Alertes from './dashboard/alerte';
 import Documents from './dashboard/documents';
 import Historique from './dashboard/historique';
+import Litiges from './dashboard/litiges';
+import Occupations from './dashboard/occupations';
 import Overview from './dashboard/overview';
 import Projets from './dashboard/projets';
+import Rapports from './dashboard/rapports';
 import Reserves from './dashboard/reserves';
+import Settings from './dashboard/settings';
 import Utilisateurs from './dashboard/utilisateurs';
 
 const Dashboard = () => {
@@ -48,7 +52,11 @@ const Dashboard = () => {
         <Route path="/projets" element={<Projets />} />
         <Route path="/documents" element={<Documents />} />
         <Route path="/historique" element={<Historique />} />
+        <Route path="/litiges" element={<Litiges />} />
+        <Route path="/occupations" element={<Occupations />} />
+        <Route path="/rapports" element={<Rapports />} />
         <Route path="/utilisateurs" element={<Utilisateurs />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </DashboardLayout>
   );

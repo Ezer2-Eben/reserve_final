@@ -33,10 +33,15 @@ public class Document {
     @Column(name = "date_upload")
     private LocalDateTime dateUpload;
 
-    @ManyToOne(fetch = FetchType.EAGER)           // ← charger la réserve immédiatement
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "reserve_id", nullable = false)
-    @JsonIgnoreProperties({"documents","projets","alertes","historiques"}) // évite récursions
+    @JsonIgnoreProperties({"documents","projets","alertes","historiques"})
     private Reserve reserve;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "projet_id", nullable = true)
+    @JsonIgnoreProperties({"documents","reserve","alertes"})
+    private Projet projet;
 
     public Document() {
         this.dateUpload = LocalDateTime.now();
@@ -144,6 +149,14 @@ public class Document {
 
     public void setReserve(Reserve reserve) {
         this.reserve = reserve;
+    }
+
+    public Projet getProjet() {
+        return projet;
+    }
+
+    public void setProjet(Projet projet) {
+        this.projet = projet;
     }
 
     // Méthodes utilitaires

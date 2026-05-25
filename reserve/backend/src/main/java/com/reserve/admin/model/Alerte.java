@@ -2,6 +2,8 @@ package com.reserve.admin.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "alerte")
@@ -12,19 +14,34 @@ public class Alerte {
     private Long id;
 
     private String type;
-
     private String description;
-
     private String niveau;
-    @ManyToOne(fetch = FetchType.EAGER)           // ← charger la réserve immédiatement
+
+    // Nouveaux champs — cycle de vie de l'alerte
+    @Column(name = "statut_alerte")
+    private String statutAlerte = "ACTIVE"; // ACTIVE, EN_COURS, RESOLUE
+
+    @Column(name = "date_limite")
+    private LocalDate dateLimite;
+
+    @Column(name = "date_creation")
+    private LocalDateTime dateCreation;
+
+    @Column(name = "date_resolution")
+    private LocalDateTime dateResolution;
+
+    @PrePersist
+    protected void onCreate() {
+        dateCreation = LocalDateTime.now();
+    }
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "reserve_id", nullable = false)
-    @JsonIgnoreProperties({"documents","projets","alertes","historiques"}) // évite récursions
+    @JsonIgnoreProperties({"documents", "projets", "alertes", "historiques"})
     private Reserve reserve;
 
     // Constructeurs
-
-    public Alerte() {
-    }
+    public Alerte() {}
 
     public Alerte(Long id, String type, String description, String niveau, Reserve reserve) {
         this.id = id;
@@ -35,44 +52,30 @@ public class Alerte {
     }
 
     // Getters et setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public String getType() {
-        return type;
-    }
+    public String getNiveau() { return niveau; }
+    public void setNiveau(String niveau) { this.niveau = niveau; }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    public String getStatutAlerte() { return statutAlerte; }
+    public void setStatutAlerte(String statutAlerte) { this.statutAlerte = statutAlerte; }
 
-    public String getDescription() {
-        return description;
-    }
+    public LocalDate getDateLimite() { return dateLimite; }
+    public void setDateLimite(LocalDate dateLimite) { this.dateLimite = dateLimite; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public LocalDateTime getDateCreation() { return dateCreation; }
+    public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }
 
-    public String getNiveau() {
-        return niveau;
-    }
+    public LocalDateTime getDateResolution() { return dateResolution; }
+    public void setDateResolution(LocalDateTime dateResolution) { this.dateResolution = dateResolution; }
 
-    public void setNiveau(String niveau) {
-        this.niveau = niveau;
-    }
-
-    public Reserve getReserve() {
-        return reserve;
-    }
-
-    public void setReserve(Reserve reserve) {
-        this.reserve = reserve;
-    }
+    public Reserve getReserve() { return reserve; }
+    public void setReserve(Reserve reserve) { this.reserve = reserve; }
 }

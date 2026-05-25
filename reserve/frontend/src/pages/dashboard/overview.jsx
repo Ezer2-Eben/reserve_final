@@ -24,6 +24,7 @@ import {
   FiMap,
   FiArrowUpRight,
   FiArrowDownRight,
+  FiShield
 } from 'react-icons/fi';
 import {
   AreaChart,
@@ -42,7 +43,8 @@ import {
   historiqueService,
   projetService,
   reserveService,
-  utilisateurService
+  utilisateurService,
+  litigeService
 } from '../../services/apiService';
 
 
@@ -177,6 +179,7 @@ const Overview = () => {
     documents: 0,
     utilisateurs: 0,
     historiques: 0,
+    litiges: 0,
   });
   const [recentActivities, setRecentActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -193,13 +196,15 @@ const Overview = () => {
           alertes,
           projets,
           documents,
-          historiques
+          historiques,
+          litiges
         ] = await Promise.all([
           reserveService.getAll().catch(() => []),
           alerteService.getAll().catch(() => []),
           projetService.getAll().catch(() => []),
           documentService.getAll().catch(() => []),
-          historiqueService.getAll().catch(() => [])
+          historiqueService.getAll().catch(() => []),
+          litigeService.getAll().catch(() => [])
         ]);
 
         let utilisateurs = [];
@@ -218,6 +223,7 @@ const Overview = () => {
           documents: documents.length,
           utilisateurs: utilisateurs.length,
           historiques: historiques.length,
+          litiges: litiges.length,
         });
 
         const activities = [];
@@ -270,8 +276,9 @@ const Overview = () => {
   const statCards = [
     { title: 'Réserves actives', value: stats.reserves, icon: FiMap, change: '12%', changeType: 'increase' },
     { title: 'Alertes en cours', value: stats.alertes, icon: FiAlertTriangle, change: '5%', changeType: 'decrease' },
-    { title: 'Projets inititiés', value: stats.projets, icon: FiFolder, change: '8%', changeType: 'increase' },
+    { title: 'Projets initiés', value: stats.projets, icon: FiFolder, change: '8%', changeType: 'increase' },
     { title: 'Documents partagés', value: stats.documents, icon: FiFileText, change: '15%', changeType: 'increase' },
+    { title: 'Conflits & Litiges', value: stats.litiges, icon: FiShield, change: null, changeType: 'increase' },
   ];
 
   return (
@@ -283,12 +290,12 @@ const Overview = () => {
               Vue d'ensemble
             </Heading>
             <Text color="gray.500" fontSize="md">
-              Bienvenue dans votre système de gestion forestière.
+              Bienvenue dans votre système de gestion des réserves administratives.
             </Text>
           </Box>
         </HStack>
 
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={6}>
+        <SimpleGrid columns={{ base: 1, sm: 2, lg: 5 }} spacing={6}>
           {statCards.map((card, index) => (
             <StatCard key={index} {...card} isLoading={isLoading} />
           ))}
@@ -360,8 +367,3 @@ const Overview = () => {
 };
 
 export default Overview;
-
-
-
-
-

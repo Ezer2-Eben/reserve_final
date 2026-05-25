@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "projet")
@@ -25,6 +27,10 @@ public class Projet {
     @JoinColumn(name = "reserve_id", nullable = false)
     @JsonIgnoreProperties({"documents","projets","alertes","historiques"}) // évite récursions
     private Reserve reserve;
+
+    @OneToMany(mappedBy = "projet", fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"projet", "reserve"})
+    private List<Document> documents = new ArrayList<>();
 
     public Projet() {}
 
@@ -103,5 +109,13 @@ public class Projet {
 
     public void setReserve(Reserve reserve) {
         this.reserve = reserve;
+    }
+
+    public List<Document> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(List<Document> documents) {
+        this.documents = documents;
     }
 }

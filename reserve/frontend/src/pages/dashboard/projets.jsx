@@ -420,6 +420,7 @@ const Projets = () => {
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Date début</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Date fin</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Réserve</Th>
+                      <Th px={4} py={3} fontWeight="semibold" color="gray.700">Documents</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Actions</Th>
                   </Tr>
                 </Thead>
@@ -437,6 +438,19 @@ const Projets = () => {
                         <Td px={4} py={3}>{formatDate(projet.dateDebut)}</Td>
                         <Td px={4} py={3}>{formatDate(projet.dateFin)}</Td>
                         <Td px={4} py={3}>{projet.reserve?.nom || 'N/A'}</Td>
+                        <Td px={4} py={3}>
+                          {projet.documents && projet.documents.length > 0 ? (
+                            <HStack spacing={1} flexWrap="wrap">
+                              {projet.documents.map(doc => (
+                                <Badge key={doc.id} colorScheme="teal" variant="subtle" fontSize="xs">
+                                  {doc.nomFichier}
+                                </Badge>
+                              ))}
+                            </HStack>
+                          ) : (
+                            <Text color="gray.400" fontStyle="italic" fontSize="xs">Aucun document</Text>
+                          )}
+                        </Td>
                       <Td px={4} py={3}>
                         <HStack spacing={2}>
                             {isAdmin() && (

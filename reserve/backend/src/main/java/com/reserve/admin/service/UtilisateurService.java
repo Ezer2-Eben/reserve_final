@@ -11,4 +11,9 @@ public interface UtilisateurService {
     Optional<Utilisateur> rechercherParNom(String username);
     Utilisateur getByUsername(String username);
     List<Utilisateur> listerUtilisateurs();
+    Optional<Utilisateur> getById(Long id);
+    Utilisateur updateUtilisateur(Long id, Utilisateur data);
+    void deleteUtilisateur(Long id);
+    void resetPassword(Long id, String newPassword);
+    Utilisateur toggleActif(Long id);
 }

@@ -77,6 +77,11 @@ export const authService = {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
+
+  forgotPassword: async (email, newPassword) => {
+    const response = await apiClient.post('/auth/forgot-password', { email, newPassword });
+    return response.data;
+  },
 };
 
 // Service des réserves
@@ -416,6 +421,117 @@ export const utilisateurService = {
       throw error;
     }
   },
+
+  resetPassword: async (id, newPassword) => {
+    try {
+      const response = await apiClient.post(`/utilisateurs/${id}/reset-password`, { newPassword });
+      return response.data;
+    } catch (error) {
+      console.error('Erreur dans utilisateurService.resetPassword:', error);
+      throw error;
+    }
+  },
+
+  toggleActif: async (id) => {
+    try {
+      const response = await apiClient.patch(`/utilisateurs/${id}/toggle-actif`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur dans utilisateurService.toggleActif:', error);
+      throw error;
+    }
+  },
 };
 
-export default apiClient; 
+// Service du journal d'activité
+export const journalService = {
+  getAll: async () => {
+    try {
+      const response = await apiClient.get('/journal');
+      return response.data;
+    } catch (error) {
+      console.error('Erreur dans journalService.getAll:', error);
+      throw error;
+    }
+  },
+
+  getRecent: async () => {
+    try {
+      const response = await apiClient.get('/journal/recent');
+      return response.data;
+    } catch (error) {
+      console.error('Erreur dans journalService.getRecent:', error);
+      throw error;
+    }
+  },
+
+  getByModule: async (module) => {
+    try {
+      const response = await apiClient.get(`/journal/module/${module}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur dans journalService.getByModule:', error);
+      throw error;
+    }
+  },
+};
+
+// Service des litiges
+export const litigeService = {
+  getAll: async () => {
+    const response = await apiClient.get('/litiges');
+    return response.data;
+  },
+  getByReserve: async (reserveId) => {
+    const response = await apiClient.get(`/litiges/reserve/${reserveId}`);
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await apiClient.post('/litiges', data);
+    return response.data;
+  },
+  update: async (id, data) => {
+    const response = await apiClient.put(`/litiges/${id}`, data);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await apiClient.delete(`/litiges/${id}`);
+    return response.data;
+  }
+};
+
+// Service des occupations
+export const occupationService = {
+  getAll: async () => {
+    const response = await apiClient.get('/occupations');
+    return response.data;
+  },
+  getByReserve: async (reserveId) => {
+    const response = await apiClient.get(`/occupations/reserve/${reserveId}`);
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await apiClient.post('/occupations', data);
+    return response.data;
+  },
+  update: async (id, data) => {
+    const response = await apiClient.put(`/occupations/${id}`, data);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await apiClient.delete(`/occupations/${id}`);
+    return response.data;
+  }
+};
+
+// Service des rapports et exports
+export const rapportService = {
+  getStats: async () => {
+    const response = await apiClient.get('/rapports/statistiques');
+    return response.data;
+  },
+  exportExcelUrl: () => `${API_BASE_URL}/rapports/export/excel`,
+  exportPdfUrl: () => `${API_BASE_URL}/rapports/export/pdf`,
+};
+
+export default apiClient;
