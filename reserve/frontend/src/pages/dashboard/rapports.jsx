@@ -4,7 +4,6 @@ import {
   Td, Th, Thead, Tr, Badge, useToast
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-
 import {
   FiFileText, FiDownload, FiMap, FiAlertTriangle, FiFolder
 } from 'react-icons/fi';
@@ -12,6 +11,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
+
 import { rapportService } from '../../services/apiService';
 
 const COLORS = ['#3182CE', '#DD6B20', '#38A169', '#E53E3E', '#805AD5'];
