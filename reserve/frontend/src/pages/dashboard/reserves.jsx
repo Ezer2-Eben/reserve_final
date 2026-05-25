@@ -59,12 +59,9 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import {
-    FiEdit,
     FiEye,
     FiMap,
-    FiPlus,
     FiSearch,
-    FiTrash2,
     FiFilter,
     FiDownload,
 } from 'react-icons/fi';
@@ -531,10 +528,7 @@ const Reserves = () => {
   const [filterStatut, setFilterStatut] = useState('');
   const [stats, setStats] = useState(null);
 
-  const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
-  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-  const { isAdmin } = useAuth();
   const toast = useToast();
 
   const fetchReserves = async () => {
@@ -731,28 +725,7 @@ const Reserves = () => {
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      await reserveService.delete(selectedReserve.id);
-      toast({
-        title: '🗑️ Réserve supprimée',
-        description: 'La réserve a été supprimée avec succès',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      fetchReserves();
-      onDeleteClose();
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la suppression',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
+
 
   const handleExport = (format) => {
     let exportData;

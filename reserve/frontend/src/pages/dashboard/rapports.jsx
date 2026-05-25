@@ -5,8 +5,7 @@ import {
   Td, Th, Thead, Tr, Badge, useToast
 } from '@chakra-ui/react';
 import {
-  FiBarChart2, FiFileText, FiDownload, FiMap, FiCheckCircle, FiAlertTriangle,
-  FiActivity, FiUsers, FiTrendingUp, FiFolder
+  FiFileText, FiDownload, FiMap, FiAlertTriangle, FiFolder
 } from 'react-icons/fi';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -83,7 +82,7 @@ const Rapports = () => {
         duration: 3000
       });
     })
-    .catch(err => {
+    .catch(() => {
       toast({
         title: 'Erreur d\'export',
         description: 'Une erreur s\'est produite lors de la génération du fichier.',
