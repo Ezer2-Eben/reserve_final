@@ -54,9 +54,31 @@ import { documentService, reserveService, projetService } from '../../services/a
 const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
   if (!document) return null;
 
+  const getYoutubeEmbedUrl = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+  };
+
   const renderPreview = () => {
     if (!document.url) return <Text color="gray.500">Aucun fichier associé à ce document.</Text>;
     
+    const youtubeEmbedUrl = getYoutubeEmbedUrl(document.url);
+    if (youtubeEmbedUrl) {
+      return (
+        <iframe 
+          src={youtubeEmbedUrl} 
+          title={document.nomFichier} 
+          width="100%" 
+          height="500px" 
+          style={{ border: 'none' }}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      );
+    }
+
     const type = document.typeFichier?.toUpperCase();
     
     if (type === 'IMG') {
