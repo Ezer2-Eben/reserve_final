@@ -42,12 +42,68 @@ import {
     FiEdit,
     FiPlus,
     FiSearch,
-    FiTrash2
+    FiTrash2,
+    FiEye,
+    FiExternalLink
 } from 'react-icons/fi';
 
 import { useAuth } from '../../context/AuthContext';
 import { documentService, reserveService, projetService } from '../../services/apiService';
 
+// --- Composant de prévisualisation ---
+const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
+  if (!document) return null;
+
+  const renderPreview = () => {
+    if (!document.url) return <Text color="gray.500">Aucun fichier associé à ce document.</Text>;
+    
+    const type = document.typeFichier?.toUpperCase();
+    
+    if (type === 'IMG') {
+      return <img src={document.url} alt={document.nomFichier} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', margin: '0 auto' }} />;
+    }
+    
+    if (type === 'PDF') {
+      return <iframe src={document.url} title={document.nomFichier} width="100%" height="600px" style={{ border: 'none' }} />;
+    }
+    
+    if (type === 'VIDEO') {
+      // eslint-disable-next-line jsx-a11y/media-has-caption
+      return <video src={document.url} controls style={{ width: '100%', maxHeight: '70vh' }} />;
+    }
+    
+    if (type === 'AUDIO') {
+      // eslint-disable-next-line jsx-a11y/media-has-caption
+      return <audio src={document.url} controls style={{ width: '100%', marginTop: '20px' }} />;
+    }
+
+    return (
+      <VStack spacing={4} py={8}>
+        <Text color="gray.500">Aperçu non disponible pour ce type de fichier ({document.typeFichier}).</Text>
+        <Button as="a" href={document.url} target="_blank" leftIcon={<FiExternalLink />} colorScheme="brand">
+          Ouvrir dans un nouvel onglet
+        </Button>
+      </VStack>
+    );
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="4xl" isCentered>
+      <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(5px)" />
+      <ModalContent overflow="hidden">
+        <ModalHeader bg="gray.50" borderBottom="1px" borderColor="gray.200">
+          Prévisualisation : {document.nomFichier}
+        </ModalHeader>
+        <ModalCloseButton />
+        <ModalBody p={0} bg="gray.100" display="flex" justifyContent="center" alignItems="center" minH="300px">
+          {renderPreview()}
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+// --- Formulaire de document ---
 const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
   const [formData, setFormData] = useState({
     nomFichier: '',
@@ -381,9 +437,9 @@ const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDocument, setSelectedDocument] = useState(null);
 
-  // Correction des hooks useDisclosure
   const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isPreviewOpen, onOpen: onPreviewOpen, onClose: onPreviewClose } = useDisclosure();
   const { isAdmin } = useAuth();
   const toast = useToast();
 
@@ -546,14 +602,29 @@ const Documents = () => {
                         </Td>
                       <Td px={4} py={3}>
                         <HStack spacing={2}>
-                            {document.url ? <IconButton
-                                icon={<FiDownload />}
-                              size="sm"
-                              variant="ghost"
-                              colorScheme="green"
-                                onClick={() => window.open(document.url, '_blank')}
-                              aria-label="Télécharger"
-                            /> : null}
+                            {document.url ? (
+                              <>
+                                <IconButton
+                                  icon={<FiEye />}
+                                  size="sm"
+                                  variant="ghost"
+                                  colorScheme="teal"
+                                  onClick={() => {
+                                    setSelectedDocument(document);
+                                    onPreviewOpen();
+                                  }}
+                                  aria-label="Prévisualiser"
+                                />
+                                <IconButton
+                                  icon={<FiDownload />}
+                                  size="sm"
+                                  variant="ghost"
+                                  colorScheme="green"
+                                  onClick={() => window.open(document.url, '_blank')}
+                                  aria-label="Télécharger"
+                                />
+                              </>
+                            ) : null}
                             {isAdmin() && (
                               <>
                             <IconButton
@@ -621,6 +692,13 @@ const Documents = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
+
+      {/* Modal de prévisualisation */}
+      <DocumentPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={onPreviewClose}
+        document={selectedDocument}
+      />
     </Box>
   );
 };
