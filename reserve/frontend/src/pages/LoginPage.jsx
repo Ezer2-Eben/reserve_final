@@ -254,8 +254,8 @@ const LoginPage = () => {
           
           <SlideFade in={true} offsetY="20px" delay={0.2}>
             <Heading size="2xl" lineHeight="1.2">
-              Préservez notre <br/>
-              <Text as="span" color="brand.300">patrimoine naturel</Text>
+              Gestion des <br/>
+              <Text as="span" color="brand.300">réserves administratives</Text>
             </Heading>
           </SlideFade>
           
