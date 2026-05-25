@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
 import {
   Box, Button, Card, CardBody, Flex, Heading, HStack, Icon, SimpleGrid,
-  Spinner, Stat, StatLabel, StatNumber, Text, VStack, Divider, Table, Tbody,
+  Spinner, Stat, StatLabel, StatNumber, Text, VStack, Table, Tbody,
   Td, Th, Thead, Tr, Badge, useToast
 } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 import {
   FiFileText, FiDownload, FiMap, FiAlertTriangle, FiFolder
 } from 'react-icons/fi';

@@ -68,7 +68,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import InteractiveMap from '../../components/ui/InteractiveMap';
-import { useAuth } from '../../context/AuthContext';
 import { reserveService } from '../../services/apiService';
 import geocodingService from '../../services/geocodingService';
 

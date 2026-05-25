@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
 import {
   Badge, Box, Button, Card, CardBody, Flex, FormControl, FormLabel,
   Heading, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid,
-  Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, VStack,
-  useDisclosure, useToast, Tag, Textarea, Divider, Icon, Stat, StatLabel, StatNumber
+  Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, VStack,
+  useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber
 } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 import {
-  FiAlertTriangle, FiPlus, FiEdit2, FiTrash2, FiSearch, FiMapPin, FiUser,
-  FiCalendar, FiLayout, FiActivity, FiXCircle
+  FiAlertTriangle, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiUser,
+  FiCalendar
 } from 'react-icons/fi';
 import { occupationService, reserveService } from '../../services/apiService';
 
