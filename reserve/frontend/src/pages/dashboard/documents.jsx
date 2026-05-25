@@ -324,7 +324,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     cursor="pointer"
-                    onClick={() => document.getElementById('file-upload').click()}
+                    onClick={() => window.document.getElementById('file-upload').click()}
                     transition="all 0.2s"
                     _hover={{ borderColor: 'brand.500', bg: 'brand.50' }}
                   >
