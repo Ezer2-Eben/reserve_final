@@ -51,8 +51,12 @@ import { useAuth } from '../../context/AuthContext';
 import { documentService, reserveService, projetService } from '../../services/apiService';
 
 // --- Composant de prévisualisation ---
+const API_BASE = 'http://localhost:9190/api';
+
 const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
   if (!document) return null;
+
+  const token = localStorage.getItem('token');
 
   const getYoutubeEmbedUrl = (url) => {
     if (!url) return null;
@@ -61,17 +65,24 @@ const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
     return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
   };
 
+  // Si le document a un chemin local, on utilise l'endpoint /preview du backend
+  const isLocalFile = document.cheminFichier != null;
+  const previewUrl = isLocalFile
+    ? `${API_BASE}/documents/${document.id}/preview?token=${encodeURIComponent(token || '')}`
+    : document.url;
+
   const renderPreview = () => {
-    if (!document.url) return <Text color="gray.500">Aucun fichier associé à ce document.</Text>;
-    
-    const youtubeEmbedUrl = getYoutubeEmbedUrl(document.url);
+    if (!previewUrl) return <Text p={4} color="gray.500">Aucun fichier associé à ce document.</Text>;
+
+    // Vidéo YouTube
+    const youtubeEmbedUrl = getYoutubeEmbedUrl(previewUrl);
     if (youtubeEmbedUrl) {
       return (
-        <iframe 
-          src={youtubeEmbedUrl} 
-          title={document.nomFichier} 
-          width="100%" 
-          height="500px" 
+        <iframe
+          src={youtubeEmbedUrl}
+          title={document.nomFichier}
+          width="100%"
+          height="500px"
           style={{ border: 'none' }}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -80,29 +91,29 @@ const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
     }
 
     const type = document.typeFichier?.toUpperCase();
-    
+
     if (type === 'IMG') {
-      return <img src={document.url} alt={document.nomFichier} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', margin: '0 auto' }} />;
+      return <img src={previewUrl} alt={document.nomFichier} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', margin: 'auto', padding: '16px' }} />;
     }
-    
+
     if (type === 'PDF') {
-      return <iframe src={document.url} title={document.nomFichier} width="100%" height="600px" style={{ border: 'none' }} />;
+      return <iframe src={previewUrl} title={document.nomFichier} width="100%" height="650px" style={{ border: 'none' }} />;
     }
-    
+
     if (type === 'VIDEO') {
       // eslint-disable-next-line jsx-a11y/media-has-caption
-      return <video src={document.url} controls style={{ width: '100%', maxHeight: '70vh' }} />;
+      return <video src={previewUrl} controls style={{ width: '100%', maxHeight: '70vh' }} />;
     }
-    
+
     if (type === 'AUDIO') {
       // eslint-disable-next-line jsx-a11y/media-has-caption
-      return <audio src={document.url} controls style={{ width: '100%', marginTop: '20px' }} />;
+      return <audio src={previewUrl} controls style={{ width: '100%', marginTop: '20px', padding: '24px' }} />;
     }
 
     return (
       <VStack spacing={4} py={8}>
         <Text color="gray.500">Aperçu non disponible pour ce type de fichier ({document.typeFichier}).</Text>
-        <Button as="a" href={document.url} target="_blank" leftIcon={<FiExternalLink />} colorScheme="brand">
+        <Button as="a" href={previewUrl} target="_blank" leftIcon={<FiExternalLink />} colorScheme="brand">
           Ouvrir dans un nouvel onglet
         </Button>
       </VStack>

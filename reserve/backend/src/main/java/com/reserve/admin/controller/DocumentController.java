@@ -133,6 +133,56 @@ public class DocumentController {
     }
 
     /**
+     * Prévisualiser un fichier (inline, sans téléchargement)
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/{id}/preview")
+    public ResponseEntity<?> previewFile(@PathVariable Long id) {
+        try {
+            DocumentServiceImpl documentServiceImpl = (DocumentServiceImpl) documentService;
+            byte[] fileContent = documentServiceImpl.downloadFile(id);
+
+            Document document = documentService.getDocumentById(id)
+                    .orElseThrow(() -> new RuntimeException("Document non trouvé"));
+
+            String filename = document.getNomFichierOriginal() != null ?
+                    document.getNomFichierOriginal() : document.getNomFichier();
+
+            // Déterminer le type MIME pour l'affichage inline
+            MediaType mediaType;
+            String type = document.getTypeFichier();
+            if ("PDF".equals(type)) {
+                mediaType = MediaType.APPLICATION_PDF;
+            } else if ("IMG".equals(type)) {
+                String ext = filename != null ? filename.toLowerCase() : "";
+                if (ext.endsWith(".png")) mediaType = MediaType.IMAGE_PNG;
+                else if (ext.endsWith(".gif")) mediaType = MediaType.IMAGE_GIF;
+                else mediaType = MediaType.IMAGE_JPEG;
+            } else if ("VIDEO".equals(type)) {
+                mediaType = MediaType.parseMediaType("video/mp4");
+            } else if ("AUDIO".equals(type)) {
+                mediaType = MediaType.parseMediaType("audio/mpeg");
+            } else {
+                mediaType = MediaType.APPLICATION_OCTET_STREAM;
+            }
+
+            ByteArrayResource resource = new ByteArrayResource(fileContent);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                    .contentType(mediaType)
+                    .contentLength(fileContent.length)
+                    .body(resource);
+
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Erreur lors de la prévisualisation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
      * Obtenir les informations sur les uploads
      */
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
