@@ -59,6 +59,9 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
   const [reserves, setReserves] = useState([]);
   const [projets, setProjets] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadType, setUploadType] = useState('local'); // 'local' or 'external'
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const toast = useToast();
 
   // Charger les réserves et projets pour le select
@@ -95,6 +98,8 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
         reserveId: '',
         projetId: '',
       });
+      setSelectedFile(null);
+      setUploadType('local');
     }
   }, [document, isOpen]);
 
@@ -103,13 +108,13 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
     setIsLoading(true);
 
     try {
-      const submitData = {
-        ...formData,
-        reserve: { id: parseInt(formData.reserveId) },
-        projet: formData.projetId ? { id: parseInt(formData.projetId) } : null
-      };
-
       if (document) {
+        // Mode modification: on met juste à jour les métadonnées
+        const submitData = {
+          ...formData,
+          reserve: { id: parseInt(formData.reserveId) },
+          projet: formData.projetId ? { id: parseInt(formData.projetId) } : null
+        };
         await documentService.update(document.id, submitData);
         toast({
           title: 'Document mis à jour',
@@ -119,7 +124,29 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
           isClosable: true,
         });
       } else {
-        await documentService.create(submitData);
+        // Mode création
+        if (uploadType === 'local') {
+          if (!selectedFile) {
+            toast({ title: 'Erreur', description: 'Veuillez sélectionner un fichier', status: 'error' });
+            setIsLoading(false);
+            return;
+          }
+          const formDataPayload = new FormData();
+          formDataPayload.append('file', selectedFile);
+          formDataPayload.append('reserveId', formData.reserveId);
+          if (formData.projetId) formDataPayload.append('projetId', formData.projetId);
+          formDataPayload.append('nomFichier', formData.nomFichier);
+          formDataPayload.append('typeFichier', formData.typeFichier || 'AUTRE');
+          
+          await documentService.uploadFile(formDataPayload);
+        } else {
+          const submitData = {
+            ...formData,
+            reserve: { id: parseInt(formData.reserveId) },
+            projet: formData.projetId ? { id: parseInt(formData.projetId) } : null
+          };
+          await documentService.create(submitData);
+        }
         toast({
           title: 'Document créé',
           description: 'Le document a été créé avec succès',
@@ -149,6 +176,38 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      setSelectedFile(files[0]);
+      if (!formData.nomFichier) {
+        setFormData(prev => ({ ...prev, nomFichier: files[0].name.replace(/\.[^/.]+$/, '') }));
+      }
+    }
+  };
+  
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      if (!formData.nomFichier) {
+        setFormData(prev => ({ ...prev, nomFichier: file.name.replace(/\.[^/.]+$/, '') }));
+      }
+    }
   };
 
   return (
@@ -227,16 +286,71 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
                 </FormControl>
               </HStack>
 
-              <FormControl isRequired>
-                <FormLabel>URL du fichier</FormLabel>
-                <Input
-                  name="url"
-                  value={formData.url}
-                  onChange={handleChange}
-                  placeholder="https://example.com/document.pdf"
-                  type="url"
-                />
-              </FormControl>
+              {!document && (
+                <FormControl mb={2}>
+                  <FormLabel>Type d'ajout</FormLabel>
+                  <HStack spacing={4}>
+                    <Button 
+                      size="sm" 
+                      colorScheme={uploadType === 'local' ? 'brand' : 'gray'} 
+                      variant={uploadType === 'local' ? 'solid' : 'outline'}
+                      onClick={() => setUploadType('local')}
+                    >
+                      Fichier local
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      colorScheme={uploadType === 'external' ? 'brand' : 'gray'} 
+                      variant={uploadType === 'external' ? 'solid' : 'outline'}
+                      onClick={() => setUploadType('external')}
+                    >
+                      URL externe
+                    </Button>
+                  </HStack>
+                </FormControl>
+              )}
+
+              {(!document && uploadType === 'local') ? (
+                <FormControl isRequired>
+                  <FormLabel>Fichier (Glisser-déposer ou cliquer)</FormLabel>
+                  <Box
+                    p={6}
+                    border="2px dashed"
+                    borderColor={isDragging ? 'brand.500' : 'gray.300'}
+                    bg={isDragging ? 'brand.50' : 'gray.50'}
+                    borderRadius="md"
+                    textAlign="center"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    cursor="pointer"
+                    onClick={() => document.getElementById('file-upload').click()}
+                    transition="all 0.2s"
+                    _hover={{ borderColor: 'brand.500', bg: 'brand.50' }}
+                  >
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      display="none"
+                      onChange={handleFileSelect}
+                    />
+                    <Text color={isDragging ? 'brand.600' : 'gray.500'} fontWeight="medium">
+                      {selectedFile ? `Fichier sélectionné: ${selectedFile.name}` : "Glissez-déposez un fichier ici ou cliquez pour parcourir"}
+                    </Text>
+                  </Box>
+                </FormControl>
+              ) : (
+                <FormControl isRequired={!document}>
+                  <FormLabel>URL du fichier</FormLabel>
+                  <Input
+                    name="url"
+                    value={formData.url}
+                    onChange={handleChange}
+                    placeholder="https://example.com/document.pdf"
+                    type="url"
+                  />
+                </FormControl>
+              )}
             </VStack>
           </ModalBody>
 
