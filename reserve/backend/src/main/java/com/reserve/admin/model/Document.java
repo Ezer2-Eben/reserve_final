@@ -25,6 +25,9 @@ public class Document {
     @Column(name = "hash_fichier")
     private String hashFichier;
     
+    @Column(name = "categorie")
+    private String categorie;
+    
     private String url; // Gardé pour compatibilité, mais optionnel maintenant
     
     @Column(name = "chemin_fichier")
@@ -48,7 +51,7 @@ public class Document {
     }
 
     public Document(String nomFichier, String nomFichierOriginal, String typeFichier, 
-                   Long tailleFichier, String hashFichier, String url, String cheminFichier, Reserve reserve) {
+                   Long tailleFichier, String hashFichier, String url, String cheminFichier, Reserve reserve, String categorie) {
         this.nomFichier = nomFichier;
         this.nomFichierOriginal = nomFichierOriginal;
         this.typeFichier = typeFichier;
@@ -57,6 +60,7 @@ public class Document {
         this.url = url;
         this.cheminFichier = cheminFichier;
         this.reserve = reserve;
+        this.categorie = categorie;
         this.dateUpload = LocalDateTime.now();
     }
 
@@ -125,6 +129,14 @@ public class Document {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getCategorie() {
+        return categorie;
+    }
+
+    public void setCategorie(String categorie) {
+        this.categorie = categorie;
     }
 
     public String getCheminFichier() {

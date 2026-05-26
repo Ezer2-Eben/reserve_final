@@ -100,6 +100,7 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
         latitude: reserve.latitude || '',
         longitude: reserve.longitude || '',
         statut: reserve.statut || 'ACTIF',
+        affectation: reserve.affectation || '',
         zone: reserve.zone || '',
       });
       
@@ -115,6 +116,7 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
         latitude: '',
         longitude: '',
         statut: 'ACTIF',
+        affectation: '',
         zone: '',
       });
     }
@@ -401,6 +403,17 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         <option value="EN_MAINTENANCE">En maintenance</option>
                         <option value="EN_PROJET">En projet</option>
                       </Select>
+                    </FormControl>
+
+                    <FormControl>
+                      <FormLabel>Usage Prévu / Affectation</FormLabel>
+                      <Input
+                        name="affectation"
+                        value={formData.affectation}
+                        onChange={handleChange}
+                        placeholder="Ex: Éducation, Santé, Agriculture..."
+                        isReadOnly={isReadOnly}
+                      />
                     </FormControl>
                   </VStack>
                 </TabPanel>

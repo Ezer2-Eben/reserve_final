@@ -42,6 +42,9 @@ public class Reserve {
     @Column(name = "proprietaire")
     private String proprietaire;
 
+    @Column(name = "affectation")
+    private String affectation;
+
     @Column(name = "reference")
     private String reference;
 
@@ -87,7 +90,7 @@ public class Reserve {
 
     public Reserve(String nom, String localisation, Double superficie, String type, 
                    Double latitude, Double longitude, String statut, String description, 
-                   String proprietaire, String reference, String zone) {
+                   String proprietaire, String reference, String zone, String affectation) {
         this.nom = nom;
         this.localisation = localisation;
         this.superficie = superficie;
@@ -99,6 +102,7 @@ public class Reserve {
         this.proprietaire = proprietaire;
         this.reference = reference;
         this.zone = zone;
+        this.affectation = affectation;
     }
 
     // 📦 Getters & Setters
@@ -180,6 +184,14 @@ public class Reserve {
 
     public void setProprietaire(String proprietaire) {
         this.proprietaire = proprietaire;
+    }
+
+    public String getAffectation() {
+        return affectation;
+    }
+
+    public void setAffectation(String affectation) {
+        this.affectation = affectation;
     }
 
     public String getReference() {

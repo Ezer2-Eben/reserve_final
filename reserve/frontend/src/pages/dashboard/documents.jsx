@@ -118,6 +118,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
   const [formData, setFormData] = useState({
     nomFichier: '',
     typeFichier: '',
+    categorie: '',
     url: '',
     reserveId: '',
     projetId: '',
@@ -152,6 +153,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
       setFormData({
         nomFichier: document.nomFichier || '',
         typeFichier: document.typeFichier || '',
+        categorie: document.categorie || '',
         url: document.url || '',
         reserveId: document.reserve?.id || '',
         projetId: document.projet?.id || '',
@@ -160,6 +162,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
       setFormData({
         nomFichier: '',
         typeFichier: '',
+        categorie: '',
         url: '',
         reserveId: '',
         projetId: '',
@@ -203,6 +206,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
           if (formData.projetId) formDataPayload.append('projetId', formData.projetId);
           formDataPayload.append('nomFichier', formData.nomFichier);
           formDataPayload.append('typeFichier', formData.typeFichier || 'AUTRE');
+          if (formData.categorie) formDataPayload.append('categorie', formData.categorie);
           
           await documentService.uploadFile(formDataPayload);
         } else {
@@ -330,6 +334,23 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
                         {reserve.nom} - {reserve.localisation}
                       </option>
                     ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Catégorie / Indexation</FormLabel>
+                  <Select
+                    name="categorie"
+                    value={formData.categorie}
+                    onChange={handleChange}
+                    placeholder="Sélectionner une catégorie"
+                  >
+                    <option value="TITRE_FONCIER">Titre Foncier</option>
+                    <option value="PLAN_CADASTRAL">Plan Cadastral</option>
+                    <option value="ARRETE_AFFECTATION">Arrêté d'affectation</option>
+                    <option value="DECISION_JUSTICE">Décision de justice</option>
+                    <option value="RAPPORT_INSPECTION">Rapport d'inspection</option>
+                    <option value="AUTRE">Autre</option>
                   </Select>
                 </FormControl>
               </HStack>
