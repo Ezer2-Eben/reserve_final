@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:9190/api/historiques';
+const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/historiques` : 'http://localhost:9190/api/historiques';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

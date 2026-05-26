@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import errorHandler from '../utils/errorHandler';
 
-const API_BASE_URL = 'http://localhost:9190/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:9190/api';
 
 // Fonction pour obtenir les headers d'authentification
 const getAuthHeaders = () => {

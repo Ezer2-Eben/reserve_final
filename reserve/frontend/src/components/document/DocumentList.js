@@ -204,7 +204,7 @@ const DocumentList = () => {
     // Vérifier si c'est un fichier local ou externe
     if (document.cheminFichier) {
       // Fichier local - télécharger via l'API
-      window.open(`http://localhost:9190/api/documents/${document.id}/download`, '_blank');
+      window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:9190/api'}/documents/${document.id}/download`, '_blank');
     } else if (document.url) {
       // Fichier externe - ouvrir l'URL
       window.open(document.url, '_blank');
