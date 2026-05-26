@@ -144,9 +144,10 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
   return (
     <Box
       animation={`${slideIn} 0.3s ease-out`}
-      bg="white"
+      bg="teal.600"
+      color="white"
       borderRight="1px"
-      borderRightColor="gray.200"
+      borderRightColor="teal.700"
       w={{ base: 'full', md: 72 }}
       pos="fixed"
       h="full"
@@ -158,7 +159,7 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
       <Flex h="20" alignItems="center" mx="6" mt={2} justifyContent="space-between">
         <HStack spacing={3} animation={`${fadeInUp} 0.5s ease-out 0.1s both`}>
           <Logo size="32px" />
-          <Text fontSize="xl" fontWeight="bold" color="gray.800">
+          <Text fontSize="xl" fontWeight="bold" color="white">
             Réserves Admin
           </Text>
         </HStack>
@@ -167,12 +168,14 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
           onClick={onClose}
           variant="ghost"
           icon={<FiX />}
+          color="white"
+          _hover={{ bg: 'teal.500' }}
           aria-label="Fermer le menu"
         />
       </Flex>
 
       <VStack spacing={2} align="stretch" px={4} mt={6} flex="1" overflowY="auto">
-        <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wider" mb={2} px={2}>
+        <Text fontSize="xs" fontWeight="bold" color="teal.200" textTransform="uppercase" letterSpacing="wider" mb={2} px={2}>
           Menu
         </Text>
         {filteredMenuItems.map((item, index) => {
@@ -186,11 +189,11 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
               w="full"
               p={3}
               borderRadius="lg"
-              bg={isActive ? 'brand.50' : 'transparent'}
-              color={isActive ? 'brand.700' : 'gray.600'}
+              bg={isActive ? 'teal.700' : 'transparent'}
+              color={isActive ? 'white' : 'teal.50'}
               _hover={{
-                bg: isActive ? 'brand.100' : 'gray.50',
-                color: isActive ? 'brand.800' : 'gray.900',
+                bg: isActive ? 'teal.800' : 'teal.500',
+                color: 'white',
               }}
               onClick={() => {
                 navigate(item.path);
@@ -223,14 +226,14 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
       </VStack>
 
       {/* User profile rich section at bottom */}
-      <Box p={4} borderTop="1px" borderColor="gray.100" bg="gray.50" mt="auto">
+      <Box p={4} borderTop="1px" borderColor="teal.700" bg="teal.800" mt="auto">
         <Menu>
-          <MenuButton w="full" _hover={{ bg: 'gray.100' }} p={2} borderRadius="md" transition="all 0.2s">
+          <MenuButton w="full" _hover={{ bg: 'teal.700' }} p={2} borderRadius="md" transition="all 0.2s">
             <HStack spacing={3}>
-              <Avatar size="sm" name={user?.username} bg="brand.600" color="white" />
+              <Avatar size="sm" name={user?.username} bg="white" color="teal.800" />
               <VStack align="flex-start" spacing={0} flex={1}>
-                <Text fontSize="sm" fontWeight="bold" color="gray.700">{user?.username}</Text>
-                <Text fontSize="xs" color="gray.500" textTransform="capitalize">{user?.role?.toLowerCase()}</Text>
+                <Text fontSize="sm" fontWeight="bold" color="white">{user?.username}</Text>
+                <Text fontSize="xs" color="teal.200" textTransform="capitalize">{user?.role?.toLowerCase()}</Text>
               </VStack>
               <FiChevronDown color="gray.500" />
             </HStack>

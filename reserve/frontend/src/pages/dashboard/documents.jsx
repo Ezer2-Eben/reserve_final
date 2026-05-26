@@ -58,13 +58,6 @@ const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
 
   const token = localStorage.getItem('token');
 
-  const getYoutubeEmbedUrl = (url) => {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
-  };
-
   // Si le document a un chemin local, on utilise l'endpoint /preview du backend
   const isLocalFile = document.cheminFichier != null;
   const previewUrl = isLocalFile
@@ -73,22 +66,6 @@ const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
 
   const renderPreview = () => {
     if (!previewUrl) return <Text p={4} color="gray.500">Aucun fichier associé à ce document.</Text>;
-
-    // Vidéo YouTube
-    const youtubeEmbedUrl = getYoutubeEmbedUrl(previewUrl);
-    if (youtubeEmbedUrl) {
-      return (
-        <iframe
-          src={youtubeEmbedUrl}
-          title={document.nomFichier}
-          width="100%"
-          height="500px"
-          style={{ border: 'none' }}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      );
-    }
 
     const type = document.typeFichier?.toUpperCase();
 

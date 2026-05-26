@@ -8,7 +8,7 @@
 class ApiConfig {
   /// URL de production sur Render (ex: 'https://mon-backend.onrender.com').
   /// Laissez vide pour utiliser l'IP locale ci-dessous en développement.
-  static const String productionUrl = '';
+  static const String productionUrl = 'https://reserve-final.onrender.com';
 
   /// Adresse IP du serveur backend Spring Boot en local.
   static const String serverIp = '192.168.1.70';
