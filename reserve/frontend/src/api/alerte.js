@@ -1,7 +1,7 @@
 // src/api/alerte.js
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/alertes` : 'http://localhost:9190/api/alertes';
+const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/alertes` : 'https://reserve-final.onrender.com/api/alertes';
 
 // Récupère automatiquement le header Authorization
 const getAuthHeaders = () => {

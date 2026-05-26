@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/documents` : 'http://localhost:9190/api/documents';
+const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/documents` : 'https://reserve-final.onrender.com/api/documents';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

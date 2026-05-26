@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/utilisateurs` : 'http://localhost:9190/api/utilisateurs';
+const BASE_URL = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/utilisateurs` : 'https://reserve-final.onrender.com/api/utilisateurs';
 
 export const registerUser = async ({username, password}) => {
   const response = await axios.post(`${BASE_URL}/inscription`, {
