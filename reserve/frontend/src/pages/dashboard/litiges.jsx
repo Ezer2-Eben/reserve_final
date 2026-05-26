@@ -1,6 +1,6 @@
 import {
   Badge, Box, Button, Card, CardBody, Flex, FormControl, FormLabel, Heading,
-  Heading, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
+  HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid,
   Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, VStack,
   useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber
