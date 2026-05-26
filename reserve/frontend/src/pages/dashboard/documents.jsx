@@ -34,7 +34,8 @@ import {
     Tr,
     useDisclosure,
     useToast,
-    VStack
+    VStack,
+    SimpleGrid
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -105,8 +106,26 @@ const DocumentPreviewModal = ({ isOpen, onClose, document }) => {
           Prévisualisation : {document.nomFichier}
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody p={0} bg="gray.100" display="flex" justifyContent="center" alignItems="center" minH="300px">
-          {renderPreview()}
+        <ModalBody p={0}>
+          {(document.reserve || document.projet) ? (
+            <Box px={4} py={3} bg="white" borderBottom="1px" borderColor="gray.200">
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2} fontSize="sm">
+                {document.reserve ? (
+                  <>
+                    <Text><strong>Réserve :</strong> {document.reserve.nom}</Text>
+                    <Text><strong>Localisation :</strong> {document.reserve.localisation || 'N/A'}</Text>
+                    <Text><strong>Superficie réserve :</strong> {document.reserve.superficie ? `${document.reserve.superficie} m²` : 'N/A'}</Text>
+                  </>
+                ) : null}
+                {document.projet ? (
+                  <Text><strong>Projet :</strong> {document.projet.nomProjet}</Text>
+                ) : null}
+              </SimpleGrid>
+            </Box>
+          ) : null}
+          <Box bg="gray.100" display="flex" justifyContent="center" alignItems="center" minH="300px">
+            {renderPreview()}
+          </Box>
         </ModalBody>
       </ModalContent>
     </Modal>

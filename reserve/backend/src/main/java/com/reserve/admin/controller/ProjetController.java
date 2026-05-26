@@ -16,6 +16,16 @@ public class ProjetController {
 
     @Autowired
     private ProjetService projetService;
+
+    @Autowired
+    private com.reserve.admin.repository.ProjetRepository projetRepository;
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/reserve/{reserveId}")
+    public List<Projet> getByReserve(@PathVariable Long reserveId) {
+        return projetRepository.findByReserveId(reserveId);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Projet createProjet(@RequestBody Projet projet) {

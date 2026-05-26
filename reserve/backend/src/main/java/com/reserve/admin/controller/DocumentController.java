@@ -31,6 +31,21 @@ public class DocumentController {
     @Autowired
     private ReserveRepository reserveRepository;
 
+    @Autowired
+    private com.reserve.admin.repository.DocumentRepository documentRepository;
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/reserve/{reserveId}")
+    public List<Document> getByReserve(@PathVariable Long reserveId) {
+        return documentRepository.findByReserveId(reserveId);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/projet/{projetId}")
+    public List<Document> getByProjet(@PathVariable Long projetId) {
+        return documentRepository.findByProjetId(projetId);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Document createDocument(@RequestBody Document document) {

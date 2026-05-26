@@ -16,6 +16,16 @@ public class AlerteController {
 
     @Autowired
     private AlerteService alerteService;
+
+    @Autowired
+    private com.reserve.admin.repository.AlerteRepository alerteRepository;
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/reserve/{reserveId}")
+    public List<Alerte> getByReserve(@PathVariable Long reserveId) {
+        return alerteRepository.findByReserveId(reserveId);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Alerte createAlerte(@RequestBody Alerte alerte) {

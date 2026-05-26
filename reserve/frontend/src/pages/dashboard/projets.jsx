@@ -8,6 +8,7 @@ import {
     Card,
     CardBody,
     Flex,
+    SimpleGrid,
     FormControl,
     FormLabel,
     Heading,
@@ -34,18 +35,25 @@ import {
     Tr,
     useDisclosure,
     useToast,
-    VStack
+    VStack,
+    Tabs,
+    TabList,
+    TabPanels,
+    Tab,
+    TabPanel
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
     FiEdit,
     FiPlus,
     FiSearch,
-    FiTrash2
+    FiTrash2,
+    FiEye,
+    FiDownload
 } from 'react-icons/fi';
 
 import { useAuth } from '../../context/AuthContext';
-import { projetService, reserveService } from '../../services/apiService';
+import { projetService, reserveService, documentService } from '../../services/apiService';
 
 const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -269,6 +277,165 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
   );
 };
 
+const ProjetDetailsModal = ({ isOpen, onClose, projet }) => {
+  const [documents, setDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (projet && isOpen) {
+      const fetchDocs = async () => {
+        setIsLoading(true);
+        try {
+          const data = await documentService.getByProjet(projet.id);
+          setDocuments(data);
+        } catch (error) {
+          console.error("Erreur lors du chargement des documents:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchDocs();
+    }
+  }, [projet, isOpen]);
+
+  const getStatusColor = (statut) => {
+    const statusConfig = {
+      EN_COURS: 'blue',
+      TERMINE: 'green',
+      EN_ATTENTE: 'yellow',
+      ANNULE: 'red',
+      PLANIFIE: 'purple',
+    };
+    return statusConfig[statut] || 'gray';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('fr-FR');
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="4xl" isCentered>
+      <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+      <ModalContent maxW="80vw" maxH="85vh" overflowY="auto">
+        <ModalHeader>📋 Dossier Complet du Projet: {projet?.nomProjet}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Tabs variant="enclosed" colorScheme="brand">
+            <TabList>
+              <Tab>📝 Informations Générales</Tab>
+              <Tab>📂 Documents Liés ({documents.length})</Tab>
+            </TabList>
+
+            <TabPanels>
+              <TabPanel>
+                <VStack spacing={6} align="stretch" py={2}>
+                  <Box>
+                    <Heading size="xs" color="gray.500" textTransform="uppercase" mb={3}>
+                      Détails du Projet
+                    </Heading>
+                    <Card variant="outline" bg="gray.50">
+                      <CardBody>
+                        <SimpleGrid columns={2} spacing={4}>
+                          <Text><strong>Nom du projet :</strong> {projet?.nomProjet}</Text>
+                          <Text>
+                            <strong>Statut :</strong>{' '}
+                            <Badge colorScheme={getStatusColor(projet?.statut)}>
+                              {projet?.statut}
+                            </Badge>
+                          </Text>
+                          <Text><strong>Maître d'ouvrage :</strong> {projet?.maitreOuvrage || 'N/A'}</Text>
+                          <Text><strong>Source de financement :</strong> {projet?.financement || 'N/A'}</Text>
+                          <Text><strong>Date de début :</strong> {formatDate(projet?.dateDebut)}</Text>
+                          <Text><strong>Date de fin :</strong> {formatDate(projet?.dateFin)}</Text>
+                        </SimpleGrid>
+                      </CardBody>
+                    </Card>
+                  </Box>
+
+                  <Box>
+                    <Heading size="xs" color="gray.500" textTransform="uppercase" mb={3}>
+                      Réserve Foncière Associée
+                    </Heading>
+                    <Card variant="outline">
+                      <CardBody>
+                        <SimpleGrid columns={2} spacing={4}>
+                          <Text><strong>Nom de la réserve :</strong> {projet?.reserve?.nom || 'N/A'}</Text>
+                          <Text><strong>Localisation :</strong> {projet?.reserve?.localisation || 'N/A'}</Text>
+                          <Text><strong>Superficie :</strong> {projet?.reserve?.superficie ? `${projet.reserve.superficie} m²` : 'N/A'}</Text>
+                          <Text><strong>Type de réserve :</strong> {projet?.reserve?.type || 'N/A'}</Text>
+                        </SimpleGrid>
+                      </CardBody>
+                    </Card>
+                  </Box>
+                </VStack>
+              </TabPanel>
+
+              <TabPanel>
+                {isLoading ? (
+                  <Flex justify="center" align="center" py={8}>
+                    <Spinner size="md" color="brand.500" />
+                  </Flex>
+                ) : documents.length === 0 ? (
+                  <Alert status="info" borderRadius="md" mt={2}>
+                    <AlertIcon />
+                    Aucun document n'est actuellement lié à ce projet.
+                  </Alert>
+                ) : (
+                  <Box overflowX="auto" mt={2}>
+                    <Table variant="simple" size="sm">
+                      <Thead bg="gray.50">
+                        <Tr>
+                          <Th>Nom du fichier</Th>
+                          <Th>Catégorie</Th>
+                          <Th>Format</Th>
+                          <Th>Taille</Th>
+                          <Th>Date d'ajout</Th>
+                          <Th>Actions</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {documents.map((doc) => (
+                          <Tr key={doc.id}>
+                            <Td fontWeight="medium">{doc.nomFichierOriginal || doc.nomFichier}</Td>
+                            <Td>
+                              <Badge colorScheme="purple">{doc.categorie || 'Non classé'}</Badge>
+                            </Td>
+                            <Td>{doc.typeFichier}</Td>
+                            <Td>{doc.tailleFichier ? `${(doc.tailleFichier / (1024 * 1024)).toFixed(2)} MB` : 'N/A'}</Td>
+                            <Td>{formatDate(doc.dateUpload)}</Td>
+                            <Td>
+                              <IconButton
+                                size="xs"
+                                icon={<FiDownload />}
+                                colorScheme="brand"
+                                variant="ghost"
+                                aria-label="Télécharger"
+                                onClick={() => {
+                                  window.open(`${process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api'}/documents/${doc.id}/download`, '_blank');
+                                }}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                )}
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="brand" onClick={onClose}>
+            Fermer
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
+
 const Projets = () => {
   const [projets, setProjets] = useState([]);
   const [filteredProjets, setFilteredProjets] = useState([]);
@@ -280,6 +447,7 @@ const Projets = () => {
   // Correction des hooks useDisclosure
   const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isDetailsOpen, onOpen: onDetailsOpen, onClose: onDetailsClose } = useDisclosure();
   const { isAdmin } = useAuth();
   const toast = useToast();
 
@@ -449,23 +617,34 @@ const Projets = () => {
                             </HStack>
                           ) : (
                             <Text color="gray.400" fontStyle="italic" fontSize="xs">Aucun document</Text>
-                          )}
+                           )}
                         </Td>
-                      <Td px={4} py={3}>
+                        <Td px={4} py={3}>
                         <HStack spacing={2}>
-                            {isAdmin() && (
-                              <>
-                            <IconButton
-                                  icon={<FiEdit />}
-                              size="sm"
-                              variant="ghost"
-                              colorScheme="blue"
-                                  onClick={() => {
-                                    setSelectedProjet(projet);
-                                    onFormOpen();
-                                  }}
-                              aria-label="Modifier"
-                            />
+                          <IconButton
+                            icon={<FiEye />}
+                            size="sm"
+                            variant="ghost"
+                            colorScheme="green"
+                            onClick={() => {
+                              setSelectedProjet(projet);
+                              onDetailsOpen();
+                            }}
+                            aria-label="Voir détails"
+                          />
+                          {isAdmin() && (
+                            <>
+                              <IconButton
+                                icon={<FiEdit />}
+                                size="sm"
+                                variant="ghost"
+                                colorScheme="blue"
+                                onClick={() => {
+                                  setSelectedProjet(projet);
+                                  onFormOpen();
+                                }}
+                                aria-label="Modifier"
+                              />
                             <IconButton
                                   icon={<FiTrash2 />}
                               size="sm"
@@ -520,6 +699,13 @@ const Projets = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
+
+      {/* Modal de détails du projet */}
+      <ProjetDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={onDetailsClose}
+        projet={selectedProjet}
+      />
     </Box>
   );
 };

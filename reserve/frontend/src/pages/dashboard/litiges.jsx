@@ -1,5 +1,5 @@
 import {
-  Badge, Box, Button, Card, CardBody, Flex, FormControl, FormLabel,
+  Badge, Box, Button, Card, CardBody, Flex, FormControl, FormLabel, Heading,
   Heading, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid,
   Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, VStack,
@@ -8,10 +8,10 @@ import {
 import { useEffect, useState } from 'react';
 import {
   FiPlus, FiEdit2, FiTrash2, FiShield,
-  FiCalendar, FiMapPin
+  FiCalendar, FiMapPin, FiEye, FiDownload
 } from 'react-icons/fi';
 
-import { litigeService, reserveService } from '../../services/apiService';
+import { litigeService, reserveService, documentService } from '../../services/apiService';
 
 const LITIGE_TYPES = {
   OCCUPATION_ILLEGALE: { label: 'Occupation Illégale', color: 'red' },
@@ -38,7 +38,31 @@ const Litiges = () => {
   const [selectedLitige, setSelectedLitige] = useState(null);
   
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
+  const [viewLitige, setViewLitige] = useState(null);
+  const [viewDocuments, setViewDocuments] = useState([]);
+  const [loadingViewDocs, setLoadingViewDocs] = useState(false);
   const toast = useToast();
+
+  const API_BASE = process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api';
+
+  const handleOpenView = async (litige) => {
+    setViewLitige(litige);
+    onViewOpen();
+    if (litige.reserve?.id) {
+      setLoadingViewDocs(true);
+      try {
+        const docs = await documentService.getByReserve(litige.reserve.id);
+        setViewDocuments(docs);
+      } catch {
+        setViewDocuments([]);
+      } finally {
+        setLoadingViewDocs(false);
+      }
+    } else {
+      setViewDocuments([]);
+    }
+  };
 
   const [formData, setFormData] = useState({
     titre: '',
@@ -325,6 +349,14 @@ const Litiges = () => {
                           <HStack spacing={2} justify="flex-end">
                             <IconButton
                               size="sm"
+                              icon={<FiEye />}
+                              aria-label="Voir détails"
+                              colorScheme="green"
+                              variant="ghost"
+                              onClick={() => handleOpenView(l)}
+                            />
+                            <IconButton
+                              size="sm"
                               icon={<FiEdit2 />}
                               aria-label="Modifier"
                               onClick={() => handleOpenEdit(l)}
@@ -357,6 +389,89 @@ const Litiges = () => {
           </CardBody>
         </Card>
       </VStack>
+
+      {/* Modal détails */}
+      <Modal isOpen={isViewOpen} onClose={onViewClose} size="4xl" isCentered scrollBehavior="inside">
+        <ModalOverlay />
+        <ModalContent maxH="90vh">
+          <ModalHeader>Détails du litige : {viewLitige?.titre}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {viewLitige ? (
+              <VStack spacing={4} align="stretch">
+                <Card variant="outline" bg="gray.50">
+                  <CardBody>
+                    <SimpleGrid columns={2} spacing={3} fontSize="sm">
+                      <Text><strong>Type :</strong> {LITIGE_TYPES[viewLitige.type]?.label || viewLitige.type}</Text>
+                      <Text><strong>Statut :</strong> {LITIGE_STATUS[viewLitige.statut]?.label || viewLitige.statut}</Text>
+                      <Text><strong>Parties :</strong> {viewLitige.partiesImpliquees || 'N/A'}</Text>
+                      <Text><strong>Procédure :</strong> {viewLitige.procedureJuridique || 'N/A'}</Text>
+                      <Text><strong>Ouverture :</strong> {viewLitige.dateOuverture || 'N/A'}</Text>
+                      <Text><strong>Échéance :</strong> {viewLitige.dateEcheance || 'N/A'}</Text>
+                    </SimpleGrid>
+                    {viewLitige.description ? (
+                      <Text mt={3} fontSize="sm"><strong>Description :</strong> {viewLitige.description}</Text>
+                    ) : null}
+                  </CardBody>
+                </Card>
+                <Card variant="outline">
+                  <CardBody>
+                    <Heading size="xs" color="gray.500" textTransform="uppercase" mb={2}>Réserve concernée</Heading>
+                    <SimpleGrid columns={2} spacing={3} fontSize="sm">
+                      <Text><strong>Nom :</strong> {viewLitige.reserve?.nom || 'N/A'}</Text>
+                      <Text><strong>Localisation :</strong> {viewLitige.reserve?.localisation || 'N/A'}</Text>
+                      <Text><strong>Superficie :</strong> {viewLitige.reserve?.superficie ? `${viewLitige.reserve.superficie} m²` : 'N/A'}</Text>
+                      <Text><strong>Type :</strong> {viewLitige.reserve?.type || 'N/A'}</Text>
+                    </SimpleGrid>
+                  </CardBody>
+                </Card>
+                <Box>
+                  <Heading size="xs" color="gray.500" textTransform="uppercase" mb={2}>
+                    Documents liés à la réserve ({viewDocuments.length})
+                  </Heading>
+                  {loadingViewDocs ? (
+                    <Flex justify="center" py={4}><Spinner size="md" color="brand.500" /></Flex>
+                  ) : viewDocuments.length === 0 ? (
+                    <Text fontSize="sm" color="gray.500" fontStyle="italic">Aucun document associé à cette réserve.</Text>
+                  ) : (
+                    <Box overflowX="auto">
+                      <Table size="sm" variant="simple">
+                        <Thead bg="gray.50">
+                          <Tr>
+                            <Th>Nom</Th>
+                            <Th>Catégorie</Th>
+                            <Th>Actions</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {viewDocuments.map((doc) => (
+                            <Tr key={doc.id}>
+                              <Td>{doc.nomFichierOriginal || doc.nomFichier}</Td>
+                              <Td><Badge colorScheme="purple">{doc.categorie || '—'}</Badge></Td>
+                              <Td>
+                                <IconButton
+                                  size="xs"
+                                  icon={<FiDownload />}
+                                  aria-label="Télécharger"
+                                  variant="ghost"
+                                  onClick={() => window.open(`${API_BASE}/documents/${doc.id}/download`, '_blank')}
+                                />
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  )}
+                </Box>
+              </VStack>
+            ) : null}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={onViewClose}>Fermer</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {/* Modal Création / Édition */}
       <Modal isOpen={isOpen} onClose={onClose} size="lg">

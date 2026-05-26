@@ -13,11 +13,21 @@ public class JournalActiviteServiceImpl implements JournalActiviteService {
     @Autowired
     private JournalActiviteRepository journalRepository;
 
+    @Autowired
+    private com.reserve.admin.repository.UtilisateurRepository utilisateurRepository;
+
     @Override
     public void logAction(String action, String module, String description, String utilisateur) {
         try {
+            String commune = null;
+            if (utilisateur != null && !utilisateur.isEmpty() && !utilisateur.equals("système")) {
+                com.reserve.admin.model.Utilisateur u = utilisateurRepository.findByUsernameIgnoreCase(utilisateur).orElse(null);
+                if (u != null) {
+                    commune = u.getCommune();
+                }
+            }
             JournalActivite entry = new JournalActivite(action, module, description,
-                    utilisateur != null ? utilisateur : "système");
+                    utilisateur != null ? utilisateur : "système", commune);
             journalRepository.save(entry);
         } catch (Exception e) {
             // Ne pas bloquer l'opération principale si le logging échoue

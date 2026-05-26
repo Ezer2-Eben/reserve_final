@@ -25,6 +25,9 @@ public class Utilisateur {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "commune")
+    private String commune;
+
     @Column(nullable = false)
     private boolean actif = true;
 
@@ -40,6 +43,15 @@ public class Utilisateur {
 
     // Constructeurs
     public Utilisateur() {}
+
+    public Utilisateur(String username, String email, String password, Role role, String commune) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.commune = commune;
+        this.actif = true;
+    }
 
     public Utilisateur(String username, String email, String password, Role role) {
         this.username = username;
@@ -67,6 +79,9 @@ public class Utilisateur {
 
     public boolean isActif() { return actif; }
     public void setActif(boolean actif) { this.actif = actif; }
+
+    public String getCommune() { return commune; }
+    public void setCommune(String commune) { this.commune = commune; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -24,6 +24,7 @@ import {
     ModalHeader,
     ModalOverlay,
     Select,
+    SimpleGrid,
     Spinner,
     Table,
     Tbody,
@@ -239,6 +240,24 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
                   )}
                 </FormControl>
               </HStack>
+
+              {isReadOnly && alerte?.reserve ? (
+                <Card variant="outline" w="full" bg="gray.50">
+                  <CardBody>
+                    <Text fontSize="sm" fontWeight="semibold" color="gray.600" mb={2}>
+                      Réserve concernée
+                    </Text>
+                    <SimpleGrid columns={2} spacing={3} fontSize="sm">
+                      <Text><strong>Nom :</strong> {alerte.reserve.nom}</Text>
+                      <Text><strong>Localisation :</strong> {alerte.reserve.localisation || 'N/A'}</Text>
+                      <Text><strong>Superficie :</strong> {alerte.reserve.superficie ? `${alerte.reserve.superficie} m²` : 'N/A'}</Text>
+                      <Text><strong>Type :</strong> {alerte.reserve.type || 'N/A'}</Text>
+                      <Text><strong>Statut alerte :</strong> {alerte.statutAlerte || 'N/A'}</Text>
+                      <Text><strong>Date limite :</strong> {alerte.dateLimite || 'N/A'}</Text>
+                    </SimpleGrid>
+                  </CardBody>
+                </Card>
+              ) : null}
             </VStack>
           </ModalBody>
 

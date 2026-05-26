@@ -8,7 +8,7 @@ import {
 import { useEffect, useState } from 'react';
 import {
   FiAlertTriangle, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiUser,
-  FiCalendar
+  FiCalendar, FiEye
 } from 'react-icons/fi';
 
 import { occupationService, reserveService } from '../../services/apiService';
@@ -36,6 +36,8 @@ const Occupations = () => {
   const [selectedOccupation, setSelectedOccupation] = useState(null);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
+  const [viewOccupation, setViewOccupation] = useState(null);
   const toast = useToast();
 
   const [formData, setFormData] = useState({
@@ -275,7 +277,7 @@ const Occupations = () => {
                     <Th>Occupant / Réserve</Th>
                     <Th>Type d'Occupation</Th>
                     <Th>Statut</Th>
-                    <Th>Superficie (ha)</Th>
+                    <Th>Superficie (m²)</Th>
                     <Th>Date Début</Th>
                     <Th>Date Fin</Th>
                     <Th textAlign="right">Actions</Th>
@@ -307,7 +309,7 @@ const Occupations = () => {
                             {OCCUPATION_STATUS[o.statut]?.label || o.statut}
                           </Badge>
                         </Td>
-                        <Td color="gray.700" fontWeight="medium">{o.superficie ? `${o.superficie} ha` : 'N/A'}</Td>
+                        <Td color="gray.700" fontWeight="medium">{o.superficie ? `${o.superficie} m²` : 'N/A'}</Td>
                         <Td fontSize="sm" color="gray.600">{o.dateDebut || 'N/A'}</Td>
                         <Td fontSize="sm" color="gray.600">
                           {o.dateFin ? (
@@ -321,6 +323,17 @@ const Occupations = () => {
                         </Td>
                         <Td textAlign="right">
                           <HStack spacing={2} justify="flex-end">
+                            <IconButton
+                              size="sm"
+                              icon={<FiEye />}
+                              aria-label="Voir détails"
+                              colorScheme="green"
+                              variant="ghost"
+                              onClick={() => {
+                                setViewOccupation(o);
+                                onViewOpen();
+                              }}
+                            />
                             <IconButton
                               size="sm"
                               icon={<FiEdit2 />}
@@ -355,6 +368,50 @@ const Occupations = () => {
           </CardBody>
         </Card>
       </VStack>
+
+      {/* Modal détails */}
+      <Modal isOpen={isViewOpen} onClose={onViewClose} size="xl" isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Détails de l&apos;occupation</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {viewOccupation ? (
+              <VStack spacing={4} align="stretch">
+                <Card variant="outline" bg="gray.50">
+                  <CardBody>
+                    <SimpleGrid columns={2} spacing={3} fontSize="sm">
+                      <Text><strong>Occupant :</strong> {viewOccupation.occupant || 'N/A'}</Text>
+                      <Text><strong>Type :</strong> {OCCUPATION_TYPES[viewOccupation.typeOccupation]?.label || viewOccupation.typeOccupation}</Text>
+                      <Text><strong>Statut :</strong> {OCCUPATION_STATUS[viewOccupation.statut]?.label || viewOccupation.statut}</Text>
+                      <Text><strong>Superficie :</strong> {viewOccupation.superficie ? `${viewOccupation.superficie} m²` : 'N/A'}</Text>
+                      <Text><strong>Début :</strong> {viewOccupation.dateDebut || 'N/A'}</Text>
+                      <Text><strong>Fin :</strong> {viewOccupation.dateFin || 'Indéterminée'}</Text>
+                    </SimpleGrid>
+                    {viewOccupation.description ? (
+                      <Text mt={3} fontSize="sm"><strong>Description :</strong> {viewOccupation.description}</Text>
+                    ) : null}
+                  </CardBody>
+                </Card>
+                <Card variant="outline">
+                  <CardBody>
+                    <Heading size="xs" color="gray.500" textTransform="uppercase" mb={2}>Réserve associée</Heading>
+                    <SimpleGrid columns={2} spacing={3} fontSize="sm">
+                      <Text><strong>Nom :</strong> {viewOccupation.reserve?.nom || 'N/A'}</Text>
+                      <Text><strong>Localisation :</strong> {viewOccupation.reserve?.localisation || 'N/A'}</Text>
+                      <Text><strong>Superficie réserve :</strong> {viewOccupation.reserve?.superficie ? `${viewOccupation.reserve.superficie} m²` : 'N/A'}</Text>
+                      <Text><strong>Type :</strong> {viewOccupation.reserve?.type || 'N/A'}</Text>
+                    </SimpleGrid>
+                  </CardBody>
+                </Card>
+              </VStack>
+            ) : null}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={onViewClose}>Fermer</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {/* Modal Création / Édition */}
       <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -415,7 +472,7 @@ const Occupations = () => {
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel>Superficie occupée (ha)</FormLabel>
+                    <FormLabel>Superficie occupée (m²)</FormLabel>
                     <Input
                       type="number"
                       step="any"

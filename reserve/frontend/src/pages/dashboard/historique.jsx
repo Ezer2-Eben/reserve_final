@@ -55,6 +55,9 @@ const Historique = () => {
     const [searchTerm, setSearchTerm]     = useState('');
     const [moduleFilter, setModuleFilter] = useState('');
     const [actionFilter, setActionFilter] = useState('');
+    const [communeFilter, setCommuneFilter] = useState('');
+
+    const uniqueCommunes = [...new Set(journal.map(e => e.commune).filter(Boolean))];
 
     const fetchJournal = async () => {
         try {
@@ -77,16 +80,18 @@ const Historique = () => {
         let result = journal;
         if (moduleFilter) result = result.filter(e => e.module === moduleFilter);
         if (actionFilter) result = result.filter(e => e.action === actionFilter);
+        if (communeFilter) result = result.filter(e => e.commune === communeFilter);
         if (searchTerm) {
             const s = searchTerm.toLowerCase();
             result = result.filter(e =>
                 e.description?.toLowerCase().includes(s) ||
                 e.utilisateur?.toLowerCase().includes(s) ||
-                e.module?.toLowerCase().includes(s)
+                e.module?.toLowerCase().includes(s) ||
+                e.commune?.toLowerCase().includes(s)
             );
         }
         setFiltered(result);
-    }, [searchTerm, moduleFilter, actionFilter, journal]);
+    }, [searchTerm, moduleFilter, actionFilter, communeFilter, journal]);
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -188,9 +193,16 @@ const Historique = () => {
                         ))}
                     </Select>
 
-                    {(moduleFilter || actionFilter || searchTerm) && (
+                    <Select maxW="180px" value={communeFilter} onChange={e => setCommuneFilter(e.target.value)}>
+                        <option value="">Toutes les communes</option>
+                        {uniqueCommunes.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </Select>
+
+                    {(moduleFilter || actionFilter || communeFilter || searchTerm) && (
                         <Button variant="ghost" size="sm" onClick={() => {
-                            setModuleFilter(''); setActionFilter(''); setSearchTerm('');
+                            setModuleFilter(''); setActionFilter(''); setCommuneFilter(''); setSearchTerm('');
                         }}>
                             Effacer les filtres
                         </Button>
@@ -224,6 +236,7 @@ const Historique = () => {
                                             <Th px={4} py={3} color="gray.700">Module</Th>
                                             <Th px={4} py={3} color="gray.700">Description</Th>
                                             <Th px={4} py={3} color="gray.700">Utilisateur</Th>
+                                            <Th px={4} py={3} color="gray.700">Commune</Th>
                                         </Tr>
                                     </Thead>
                                     <Tbody>
@@ -250,6 +263,15 @@ const Historique = () => {
                                                     <Badge colorScheme="gray" variant="subtle">
                                                         {entry.utilisateur || 'système'}
                                                     </Badge>
+                                                </Td>
+                                                <Td px={4} py={3}>
+                                                    {entry.commune ? (
+                                                        <Badge colorScheme="teal" variant="solid">
+                                                            {entry.commune}
+                                                        </Badge>
+                                                    ) : (
+                                                        <Text color="gray.400" fontSize="sm" fontStyle="italic">N/A</Text>
+                                                    )}
                                                 </Td>
                                             </Tr>
                                         ))}

@@ -23,6 +23,9 @@ public class JournalActivite {
     @Column(length = 100)
     private String utilisateur; // username qui a effectué l'action
 
+    @Column(length = 100)
+    private String commune; // commune de l'utilisateur qui a effectué l'action
+
     @Column(nullable = false)
     private LocalDateTime dateAction;
 
@@ -35,6 +38,15 @@ public class JournalActivite {
 
     // Constructeurs
     public JournalActivite() {}
+
+    public JournalActivite(String action, String module, String description, String utilisateur, String commune) {
+        this.action = action;
+        this.module = module;
+        this.description = description;
+        this.utilisateur = utilisateur;
+        this.commune = commune;
+        this.dateAction = LocalDateTime.now();
+    }
 
     public JournalActivite(String action, String module, String description, String utilisateur) {
         this.action = action;
@@ -59,6 +71,9 @@ public class JournalActivite {
 
     public String getUtilisateur() { return utilisateur; }
     public void setUtilisateur(String utilisateur) { this.utilisateur = utilisateur; }
+
+    public String getCommune() { return commune; }
+    public void setCommune(String commune) { this.commune = commune; }
 
     public LocalDateTime getDateAction() { return dateAction; }
     public void setDateAction(LocalDateTime dateAction) { this.dateAction = dateAction; }

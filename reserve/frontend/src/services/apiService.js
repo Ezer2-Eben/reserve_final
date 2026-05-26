@@ -237,6 +237,10 @@ export const alerteService = {
       throw error;
     }
   },
+  getByReserve: async (reserveId) => {
+    const response = await apiClient.get(`/alertes/reserve/${reserveId}`);
+    return response.data;
+  },
 };
 
 // Service des projets
@@ -265,6 +269,10 @@ export const projetService = {
     const response = await apiClient.delete(`/projets/${id}`);
     return response.data;
   },
+  getByReserve: async (reserveId) => {
+    const response = await apiClient.get(`/projets/reserve/${reserveId}`);
+    return response.data;
+  },
 };
 
 // Service des documents
@@ -291,6 +299,16 @@ export const documentService = {
 
   delete: async (id) => {
     const response = await apiClient.delete(`/documents/${id}`);
+    return response.data;
+  },
+
+  getByReserve: async (reserveId) => {
+    const response = await apiClient.get(`/documents/reserve/${reserveId}`);
+    return response.data;
+  },
+
+  getByProjet: async (projetId) => {
+    const response = await apiClient.get(`/documents/projet/${projetId}`);
     return response.data;
   },
 

@@ -68,7 +68,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import InteractiveMap from '../../components/ui/InteractiveMap';
-import { reserveService } from '../../services/apiService';
+import { reserveService, litigeService, occupationService, documentService, alerteService, projetService } from '../../services/apiService';
 import geocodingService from '../../services/geocodingService';
 
 // ==================== COMPOSANT FORMULAIRE ====================
@@ -89,6 +89,40 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
   const [spatialStats, setSpatialStats] = useState(null);
 
   const toast = useToast();
+
+  const [litiges, setLitiges] = useState([]);
+  const [occupations, setOccupations] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [alertes, setAlertes] = useState([]);
+  const [projets, setProjets] = useState([]);
+  const [loadingLinked, setLoadingLinked] = useState(false);
+
+  useEffect(() => {
+    if (reserve && isOpen) {
+      const fetchLinkedData = async () => {
+        setLoadingLinked(true);
+        try {
+          const [litigesData, occupationsData, documentsData, alertesData, projetsData] = await Promise.all([
+            litigeService.getByReserve(reserve.id).catch(() => []),
+            occupationService.getByReserve(reserve.id).catch(() => []),
+            documentService.getByReserve(reserve.id).catch(() => []),
+            alerteService.getByReserve(reserve.id).catch(() => []),
+            projetService.getByReserve(reserve.id).catch(() => []),
+          ]);
+          setLitiges(litigesData);
+          setOccupations(occupationsData);
+          setDocuments(documentsData);
+          setAlertes(alertesData);
+          setProjets(projetsData);
+        } catch (error) {
+          console.error('Erreur chargement des données liées:', error);
+        } finally {
+          setLoadingLinked(false);
+        }
+      };
+      fetchLinkedData();
+    }
+  }, [reserve, isOpen]);
 
   useEffect(() => {
     if (reserve) {
@@ -292,6 +326,11 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                 <Tab>📝 Informations</Tab>
                 <Tab>🗺️ Cartographie</Tab>
                 {spatialStats ? <Tab>📊 Analyses</Tab> : null}
+                {isReadOnly && <Tab>⚖️ Litiges ({litiges.length})</Tab>}
+                {isReadOnly && <Tab>📂 Documents ({documents.length})</Tab>}
+                {isReadOnly && <Tab>🏠 Occupations ({occupations.length})</Tab>}
+                {isReadOnly && <Tab>🚨 Alertes ({alertes.length})</Tab>}
+                {isReadOnly && <Tab>🏗️ Projets ({projets.length})</Tab>}
               </TabList>
 
               <TabPanels>
@@ -322,7 +361,7 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
 
                     <HStack spacing={4} w="full">
                       <FormControl isRequired>
-                        <FormLabel>Superficie (ha)</FormLabel>
+                        <FormLabel>Superficie (m²)</FormLabel>
                         <NumberInput
                           value={formData.superficie}
                           onChange={(value) => handleNumberChange('superficie', value)}
@@ -501,6 +540,289 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </Card> : null}
                     </VStack>
                   </TabPanel> : null}
+
+                {isReadOnly && (
+                  <TabPanel>
+                    {loadingLinked ? (
+                      <Flex justify="center" align="center" p={8}>
+                        <Spinner size="lg" color="brand.500" />
+                      </Flex>
+                    ) : litiges.length === 0 ? (
+                      <Alert status="info" borderRadius="md">
+                        <AlertIcon />
+                        Aucun litige associé à cette réserve.
+                      </Alert>
+                    ) : (
+                      <Box overflowX="auto">
+                        <Table variant="simple" size="sm">
+                          <Thead>
+                            <Tr>
+                              <Th>Titre</Th>
+                              <Th>Type</Th>
+                              <Th>Statut</Th>
+                              <Th>Parties impliquées</Th>
+                              <Th>Date d'ouverture</Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {litiges.map((l) => (
+                              <Tr key={l.id}>
+                                <Td fontWeight="medium">{l.titre}</Td>
+                                <Td>{l.type}</Td>
+                                <Td>
+                                  <Badge
+                                    colorScheme={
+                                      l.statut === 'RESOLU'
+                                        ? 'green'
+                                        : l.statut === 'EN_COURS'
+                                        ? 'yellow'
+                                        : 'red'
+                                    }
+                                  >
+                                    {l.statut}
+                                  </Badge>
+                                </Td>
+                                <Td>{l.partiesImpliquees}</Td>
+                                <Td>{l.dateOuverture}</Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    )}
+                  </TabPanel>
+                )}
+
+                {isReadOnly && (
+                  <TabPanel>
+                    {loadingLinked ? (
+                      <Flex justify="center" align="center" p={8}>
+                        <Spinner size="lg" color="brand.500" />
+                      </Flex>
+                    ) : documents.length === 0 ? (
+                      <Alert status="info" borderRadius="md">
+                        <AlertIcon />
+                        Aucun document associé à cette réserve.
+                      </Alert>
+                    ) : (
+                      <Box overflowX="auto">
+                        <Table variant="simple" size="sm">
+                          <Thead>
+                            <Tr>
+                              <Th>Nom</Th>
+                              <Th>Catégorie</Th>
+                              <Th>Type</Th>
+                              <Th>Taille</Th>
+                              <Th>Date d'ajout</Th>
+                              <Th>Actions</Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {documents.map((doc) => (
+                              <Tr key={doc.id}>
+                                <Td fontWeight="medium">{doc.nomFichierOriginal || doc.nomFichier}</Td>
+                                <Td>
+                                  <Badge colorScheme="purple">{doc.categorie || 'Non classé'}</Badge>
+                                </Td>
+                                <Td>{doc.typeFichier}</Td>
+                                <Td>{doc.tailleFichier ? `${(doc.tailleFichier / (1024 * 1024)).toFixed(2)} MB` : 'N/A'}</Td>
+                                <Td>{doc.dateUpload ? new Date(doc.dateUpload).toLocaleDateString() : 'N/A'}</Td>
+                                <Td>
+                                  <HStack spacing={2}>
+                                    <IconButton
+                                      size="xs"
+                                      icon={<FiDownload />}
+                                      colorScheme="brand"
+                                      variant="ghost"
+                                      aria-label="Télécharger"
+                                      onClick={() => {
+                                        window.open(`${process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api'}/documents/${doc.id}/download`, '_blank');
+                                      }}
+                                    />
+                                  </HStack>
+                                </Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    )}
+                  </TabPanel>
+                )}
+
+                {isReadOnly && (
+                  <TabPanel>
+                    {loadingLinked ? (
+                      <Flex justify="center" align="center" p={8}>
+                        <Spinner size="lg" color="brand.500" />
+                      </Flex>
+                    ) : occupations.length === 0 ? (
+                      <Alert status="info" borderRadius="md">
+                        <AlertIcon />
+                        Aucune occupation enregistrée sur cette réserve.
+                      </Alert>
+                    ) : (
+                      <Box overflowX="auto">
+                        <Table variant="simple" size="sm">
+                          <Thead>
+                            <Tr>
+                              <Th>Occupant</Th>
+                              <Th>Type d'occupation</Th>
+                              <Th>Statut</Th>
+                              <Th>Superficie (m²)</Th>
+                              <Th>Date Début</Th>
+                              <Th>Date Fin</Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {occupations.map((occ) => (
+                              <Tr key={occ.id}>
+                                <Td fontWeight="medium">{occ.occupant || 'Inconnu'}</Td>
+                                <Td>
+                                  <Badge
+                                    colorScheme={
+                                      occ.typeOccupation === 'LEGALE'
+                                        ? 'green'
+                                        : occ.typeOccupation === 'TOLEREE'
+                                        ? 'orange'
+                                        : 'red'
+                                    }
+                                  >
+                                    {occ.typeOccupation}
+                                  </Badge>
+                                </Td>
+                                <Td>
+                                  <Badge
+                                    colorScheme={occ.statut === 'ACTIF' ? 'blue' : 'gray'}
+                                  >
+                                    {occ.statut}
+                                  </Badge>
+                                </Td>
+                                <Td>{occ.superficie ? `${occ.superficie} m²` : 'N/A'}</Td>
+                                <Td>{occ.dateDebut || 'N/A'}</Td>
+                                <Td>{occ.dateFin || 'N/A'}</Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    )}
+                  </TabPanel>
+                )}
+
+                {isReadOnly && (
+                  <TabPanel>
+                    {loadingLinked ? (
+                      <Flex justify="center" align="center" p={8}>
+                        <Spinner size="lg" color="brand.500" />
+                      </Flex>
+                    ) : alertes.length === 0 ? (
+                      <Alert status="success" borderRadius="md">
+                        <AlertIcon />
+                        Aucune alerte active pour cette réserve.
+                      </Alert>
+                    ) : (
+                      <Box overflowX="auto">
+                        <Table variant="simple" size="sm">
+                          <Thead>
+                            <Tr>
+                              <Th>Type</Th>
+                              <Th>Description</Th>
+                              <Th>Niveau</Th>
+                              <Th>Statut</Th>
+                              <Th>Date Limite</Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {alertes.map((a) => (
+                              <Tr key={a.id}>
+                                <Td fontWeight="medium">{a.type}</Td>
+                                <Td>{a.description}</Td>
+                                <Td>
+                                  <Badge
+                                    colorScheme={
+                                      a.niveau === 'CRITIQUE'
+                                        ? 'red'
+                                        : a.niveau === 'ELEVEE'
+                                        ? 'orange'
+                                        : a.niveau === 'MOYENNE'
+                                        ? 'yellow'
+                                        : 'blue'
+                                    }
+                                  >
+                                    {a.niveau}
+                                  </Badge>
+                                </Td>
+                                <Td>
+                                  <Badge
+                                    colorScheme={a.statutAlerte === 'ACTIVE' ? 'red' : 'green'}
+                                  >
+                                    {a.statutAlerte}
+                                  </Badge>
+                                </Td>
+                                <Td>{a.dateLimite || 'N/A'}</Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    )}
+                  </TabPanel>
+                )}
+
+                {isReadOnly && (
+                  <TabPanel>
+                    {loadingLinked ? (
+                      <Flex justify="center" align="center" p={8}>
+                        <Spinner size="lg" color="brand.500" />
+                      </Flex>
+                    ) : projets.length === 0 ? (
+                      <Alert status="info" borderRadius="md">
+                        <AlertIcon />
+                        Aucun projet associé à cette réserve.
+                      </Alert>
+                    ) : (
+                      <Box overflowX="auto">
+                        <Table variant="simple" size="sm">
+                          <Thead>
+                            <Tr>
+                              <Th>Nom Projet</Th>
+                              <Th>Maître d'ouvrage</Th>
+                              <Th>Financement</Th>
+                              <Th>Statut</Th>
+                              <Th>Date Début</Th>
+                              <Th>Date Fin</Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {projets.map((p) => (
+                              <Tr key={p.id}>
+                                <Td fontWeight="medium">{p.nomProjet}</Td>
+                                <Td>{p.maitreOuvrage}</Td>
+                                <Td>{p.financement}</Td>
+                                <Td>
+                                  <Badge
+                                    colorScheme={
+                                      p.statut === 'ACHEVE'
+                                        ? 'green'
+                                        : p.statut === 'EN_COURS'
+                                        ? 'blue'
+                                        : 'yellow'
+                                    }
+                                  >
+                                    {p.statut}
+                                  </Badge>
+                                </Td>
+                                <Td>{p.dateDebut || 'N/A'}</Td>
+                                <Td>{p.dateFin || 'N/A'}</Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    )}
+                  </TabPanel>
+                )}
               </TabPanels>
             </Tabs>
           </ModalBody>
@@ -870,8 +1192,8 @@ const Reserves = () => {
               <CardBody>
                 <Stat>
                   <StatLabel>Superficie Totale</StatLabel>
-                  <StatNumber>{stats.totalSuperficie.toFixed(0)} ha</StatNumber>
-                  <StatHelpText>{(stats.totalSuperficie / 100).toFixed(2)} km²</StatHelpText>
+                  <StatNumber>{stats.totalSuperficie.toFixed(0)} m²</StatNumber>
+                  <StatHelpText>{(stats.totalSuperficie / 1000000).toFixed(2)} km²</StatHelpText>
                 </Stat>
               </CardBody>
             </Card>
@@ -1031,9 +1353,9 @@ const Reserves = () => {
                           <Text fontSize="sm">{reserve.localisation}</Text>
                         </Td>
                         <Td px={4} py={3}>
-                          <Text fontWeight="semibold">{reserve.superficie} ha</Text>
+                          <Text fontWeight="semibold">{reserve.superficie} m²</Text>
                           <Text fontSize="xs" color="gray.500">
-                            {(parseFloat(reserve.superficie) / 100).toFixed(2)} km²
+                            {(parseFloat(reserve.superficie) / 1000000).toFixed(2)} km²
                           </Text>
                         </Td>
                         <Td px={4} py={3}>
