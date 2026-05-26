@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
@@ -37,6 +38,7 @@ public class RapportController {
     @Autowired private OccupationRepository occupationRepository;
 
     // ─── Statistiques globales ───────────────────────────────────────────────
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/statistiques")
     public ResponseEntity<Map<String, Object>> getStatistiques() {
         java.util.List<Reserve> reserves = reserveRepository.findAll();
@@ -71,6 +73,7 @@ public class RapportController {
     }
 
     // ─── Export Excel ─────────────────────────────────────────────────────────
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/export/excel")
     public ResponseEntity<byte[]> exportExcel() throws Exception {
         java.util.List<Reserve> reserves = reserveRepository.findAll();
@@ -141,6 +144,7 @@ public class RapportController {
     }
 
     // ─── Export PDF ──────────────────────────────────────────────────────────
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/export/pdf")
     public ResponseEntity<byte[]> exportPdf() throws Exception {
         java.util.List<Reserve> reserves = reserveRepository.findAll();

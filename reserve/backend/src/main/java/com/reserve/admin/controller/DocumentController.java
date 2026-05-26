@@ -34,44 +34,44 @@ public class DocumentController {
     @Autowired
     private com.reserve.admin.repository.DocumentRepository documentRepository;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/reserve/{reserveId}")
     public List<Document> getByReserve(@PathVariable Long reserveId) {
         return documentRepository.findByReserveId(reserveId);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/projet/{projetId}")
     public List<Document> getByProjet(@PathVariable Long projetId) {
         return documentRepository.findByProjetId(projetId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping
     public Document createDocument(@RequestBody Document document) {
         return documentService.saveDocument(document);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping
     public List<Document> getAllDocuments() {
         return documentService.getAllDocuments();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/{id}")
     public Document getDocumentById(@PathVariable Long id) {
         return documentService.getDocumentById(id)
                 .orElseThrow(() -> new RuntimeException("Document non trouvé avec l'id " + id));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public Document updateDocument(@PathVariable Long id, @RequestBody Document document) {
         return documentService.updateDocument(id, document);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
@@ -80,7 +80,7 @@ public class DocumentController {
     /**
      * Upload un fichier
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
@@ -119,7 +119,7 @@ public class DocumentController {
     /**
      * Télécharger un fichier
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/{id}/download")
     public ResponseEntity<?> downloadFile(@PathVariable Long id) {
         try {
@@ -150,7 +150,7 @@ public class DocumentController {
     /**
      * Prévisualiser un fichier (inline, sans téléchargement)
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/{id}/preview")
     public ResponseEntity<?> previewFile(@PathVariable Long id) {
         try {
@@ -200,7 +200,7 @@ public class DocumentController {
     /**
      * Obtenir les informations sur les uploads
      */
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/upload-info")
     public ResponseEntity<?> getUploadInfo() {
         try {
@@ -224,7 +224,7 @@ public class DocumentController {
     /**
      * Vérifier si un fichier existe
      */
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/{id}/exists")
     public ResponseEntity<?> fileExists(@PathVariable Long id) {
         try {
@@ -247,7 +247,7 @@ public class DocumentController {
     /**
      * Créer un document avec URL externe
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping("/external")
     public ResponseEntity<?> createExternalDocument(@RequestBody Map<String, Object> request) {
         try {
@@ -288,7 +288,7 @@ public class DocumentController {
     /**
      * Migrer un document local vers externe
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}/migrate-to-external")
     public ResponseEntity<?> migrateToExternal(@PathVariable Long id, @RequestBody Map<String, String> request) {
         try {
@@ -338,7 +338,7 @@ public class DocumentController {
     /**
      * Importer des documents depuis un dossier local
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping("/import-from-folder")
     public ResponseEntity<?> importFromFolder(
             @RequestParam("folderPath") String folderPath,
@@ -371,7 +371,7 @@ public class DocumentController {
     /**
      * Obtenir la liste des dossiers disponibles pour l'import
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/available-folders")
     public ResponseEntity<?> getAvailableFolders() {
         try {

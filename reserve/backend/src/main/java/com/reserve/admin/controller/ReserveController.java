@@ -23,14 +23,14 @@ public class ReserveController {
     }
 
     // ✅ USER et ADMIN peuvent voir la liste
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'SUPER_ADMIN')")
     @GetMapping
     public List<Reserve> getAllReserves() {
         return reserveService.getAllReserves();
     }
 
     // ✅ USER et ADMIN peuvent voir une réserve spécifique
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'SUPER_ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Reserve> getReserveById(@PathVariable Long id) {
         Optional<Reserve> reserve = reserveService.getReserveById(id);
@@ -39,7 +39,7 @@ public class ReserveController {
     }
 
     // ✅ Seul l'ADMIN peut créer une réserve (zone incluse)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<Reserve> createReserve(@RequestBody Reserve reserve) {
         Reserve created = reserveService.createReserve(reserve);
@@ -47,7 +47,7 @@ public class ReserveController {
     }
 
     // ✅ Seul l'ADMIN peut mettre à jour une réserve (zone incluse)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Reserve> updateReserve(@PathVariable Long id, @RequestBody Reserve reserve) {
         Reserve updated = reserveService.updateReserve(id, reserve);
@@ -59,7 +59,7 @@ public class ReserveController {
     }
 
     // ✅ Seul l'ADMIN peut supprimer une réserve
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReserve(@PathVariable Long id) {
         reserveService.deleteReserve(id);

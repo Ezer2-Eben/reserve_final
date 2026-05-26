@@ -35,9 +35,9 @@ const Dashboard = () => {
     return <Navigate to="/login" replace />;
   }
   
-  // 3. Si ce n'est pas un admin, rediriger vers la page visite
-  if (user.role !== 'ADMIN') {
-    console.log(`Dashboard: Rôle "${user.role}" n'est pas ADMIN, redirection vers /visite`);
+  // 3. Si ce n'est pas un admin (ADMIN ou SUPER_ADMIN), rediriger vers la page visite
+  if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+    console.log(`Dashboard: Rôle "${user.role}" n'a pas accès au dashboard, redirection vers /visite`);
     return <Navigate to="/visite" replace />;
   }
   

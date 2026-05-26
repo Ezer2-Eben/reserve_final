@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       // NE PAS utiliser navigate ici, retourner le chemin de redirection
-      const redirectTo = response.role === 'ADMIN' ? '/dashboard' : '/visite';
+      const redirectTo = ['ADMIN', 'SUPER_ADMIN'].includes(response.role) ? '/dashboard' : '/visite';
       return { 
         success: true, 
         user: userData,
@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       // NE PAS utiliser navigate ici, retourner le chemin de redirection
-      const redirectTo = response.role === 'ADMIN' ? '/dashboard' : '/visite';
+      const redirectTo = ['ADMIN', 'SUPER_ADMIN'].includes(response.role) ? '/dashboard' : '/visite';
       return { 
         success: true, 
         user: newUserData,
@@ -183,11 +183,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = () => {
-    return state.user?.role === 'ADMIN';
+    return ['ADMIN', 'SUPER_ADMIN'].includes(state.user?.role);
   };
 
   const isUser = () => {
     return state.user?.role === 'USER';
+  };
+
+  const isSuperAdmin = () => {
+    return state.user?.role === 'SUPER_ADMIN';
   };
 
   const hasRole = (role) => {
@@ -197,7 +201,7 @@ export const AuthProvider = ({ children }) => {
   // Fonction pour obtenir la page d'accueil
   const getUserHomepage = () => {
     if (!state.user) return '/login';
-    if (state.user.role === 'ADMIN') return '/dashboard';
+    if (['ADMIN', 'SUPER_ADMIN'].includes(state.user.role)) return '/dashboard';
     return '/visite';
   };
 
@@ -209,6 +213,7 @@ export const AuthProvider = ({ children }) => {
     clearError,
     isAdmin,
     isUser,
+    isSuperAdmin,
     hasRole,
     getUserHomepage,
   };

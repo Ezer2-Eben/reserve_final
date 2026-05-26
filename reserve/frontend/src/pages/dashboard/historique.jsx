@@ -28,6 +28,7 @@ import {
 import { useEffect, useState } from 'react';
 import { FiSearch, FiRefreshCw, FiActivity, FiLogIn, FiPlusCircle, FiEdit2, FiTrash2, FiUpload } from 'react-icons/fi';
 
+import { useAuth } from '../../context/AuthContext';
 import { journalService } from '../../services/apiService';
 
 const ACTION_CONFIG = {
@@ -48,6 +49,7 @@ const MODULE_COLORS = {
 };
 
 const Historique = () => {
+    const { user } = useAuth();
     const [journal, setJournal]           = useState([]);
     const [filtered, setFiltered]         = useState([]);
     const [isLoading, setIsLoading]       = useState(true);
@@ -74,7 +76,9 @@ const Historique = () => {
         }
     };
 
-    useEffect(() => { fetchJournal(); }, []);
+    useEffect(() => {
+        if (user?.role === 'SUPER_ADMIN') fetchJournal();
+    }, [user?.role]);
 
     useEffect(() => {
         let result = journal;
@@ -110,6 +114,15 @@ const Historique = () => {
         const color = MODULE_COLORS[module] || 'gray';
         return <Badge colorScheme={color} variant="outline">{module}</Badge>;
     };
+
+    if (user?.role !== 'SUPER_ADMIN') {
+        return (
+            <Alert status="warning" borderRadius="lg">
+                <AlertIcon />
+                Accès réservé aux super administrateurs.
+            </Alert>
+        );
+    }
 
     if (error) {
         return (

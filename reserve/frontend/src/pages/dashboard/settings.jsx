@@ -64,7 +64,7 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    fetchProfile();
+    if (user?.role === 'SUPER_ADMIN') fetchProfile();
   }, [user]);
 
   const handleUpdateProfile = async (e) => {
@@ -160,6 +160,16 @@ const Settings = () => {
       });
     }, 2000);
   };
+
+  if (user?.role !== 'SUPER_ADMIN') {
+    return (
+      <Box textAlign="center" py={12}>
+        <Text fontSize="lg" color="gray.500">
+          Accès réservé aux super administrateurs.
+        </Text>
+      </Box>
+    );
+  }
 
   if (isLoading) {
     return (

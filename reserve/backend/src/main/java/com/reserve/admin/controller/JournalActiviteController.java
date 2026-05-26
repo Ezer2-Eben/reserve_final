@@ -3,6 +3,7 @@ package com.reserve.admin.controller;
 import com.reserve.admin.model.JournalActivite;
 import com.reserve.admin.service.JournalActiviteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,16 +17,19 @@ public class JournalActiviteController {
     @Autowired
     private JournalActiviteService journalService;
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<List<JournalActivite>> getAll() {
         return ResponseEntity.ok(journalService.getAll());
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping("/recent")
     public ResponseEntity<List<JournalActivite>> getRecent() {
         return ResponseEntity.ok(journalService.getRecent());
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping("/module/{module}")
     public ResponseEntity<List<JournalActivite>> getByModule(@PathVariable String module) {
         return ResponseEntity.ok(journalService.getByModule(module.toUpperCase()));

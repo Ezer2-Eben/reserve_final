@@ -20,31 +20,31 @@ public class ProjetController {
     @Autowired
     private com.reserve.admin.repository.ProjetRepository projetRepository;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/reserve/{reserveId}")
     public List<Projet> getByReserve(@PathVariable Long reserveId) {
         return projetRepository.findByReserveId(reserveId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping
     public Projet createProjet(@RequestBody Projet projet) {
         return projetService.saveProjet(projet);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping
     public List<Projet> getAllProjets() {
         return projetService.getAllProjets();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/{id}")
     public Projet getProjetById(@PathVariable Long id) {
         return projetService.getProjetById(id).orElse(null);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Projet> updateProjet(@PathVariable Long id, @RequestBody Projet projet) {
         Projet updated = projetService.updateProjet(id, projet);
@@ -54,7 +54,7 @@ public class ProjetController {
             return ResponseEntity.notFound().build();
         }
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteProjet(@PathVariable Long id) {
         projetService.deleteProjet(id);

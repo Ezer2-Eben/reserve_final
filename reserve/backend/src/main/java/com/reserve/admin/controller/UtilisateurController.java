@@ -39,14 +39,14 @@ public class UtilisateurController {
     }
 
     // ✅ Inscription - restreinte à l'ADMIN
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/inscription")
     public ResponseEntity<Map<String, Object>> inscription(@RequestBody Utilisateur utilisateur) {
         return createUtilisateur(utilisateur);
     }
 
     // ✅ Création d'utilisateur - ADMIN uniquement
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<Map<String, Object>> createUtilisateur(@RequestBody Utilisateur utilisateur) {
         try {
@@ -96,14 +96,14 @@ public class UtilisateurController {
     }
 
     // ✅ Liste tous les utilisateurs
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<?> getAllUtilisateurs() {
         return ResponseEntity.ok(utilisateurService.listerUtilisateurs());
     }
 
     // ✅ Get utilisateur by ID
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUtilisateurById(@PathVariable Long id) {
         return utilisateurService.getById(id)
@@ -112,7 +112,7 @@ public class UtilisateurController {
     }
 
     // ✅ Modifier un utilisateur (role, email, actif)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUtilisateur(@PathVariable Long id, @RequestBody Utilisateur data) {
         try {
@@ -127,7 +127,7 @@ public class UtilisateurController {
     }
 
     // ✅ Supprimer un utilisateur
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUtilisateur(@PathVariable Long id) {
         try {
@@ -144,7 +144,7 @@ public class UtilisateurController {
     }
 
     // ✅ Réinitialiser le mot de passe
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String newPassword = body.get("newPassword");
@@ -168,7 +168,7 @@ public class UtilisateurController {
     }
 
     // ✅ Activer / Désactiver un utilisateur
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PatchMapping("/{id}/toggle-actif")
     public ResponseEntity<?> toggleActif(@PathVariable Long id) {
         try {

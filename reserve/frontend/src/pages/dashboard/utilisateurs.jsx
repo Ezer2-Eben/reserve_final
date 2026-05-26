@@ -231,7 +231,7 @@ const Utilisateurs = () => {
     const [roleFilter, setRoleFilter]       = useState('');
     const [selected, setSelected]           = useState(null);
     const toast = useToast();
-    const { isAdmin } = useAuth();
+    const { isSuperAdmin } = useAuth();
 
     const { isOpen: isFormOpen,   onOpen: onFormOpen,   onClose: onFormClose }   = useDisclosure();
     const { isOpen: isEditOpen,   onOpen: onEditOpen,   onClose: onEditClose }   = useDisclosure();
@@ -254,7 +254,7 @@ const Utilisateurs = () => {
         }
     };
 
-    useEffect(() => { if (isAdmin()) fetchUtilisateurs(); else setIsLoading(false); }, []);
+    useEffect(() => { if (isSuperAdmin()) fetchUtilisateurs(); else setIsLoading(false); }, []);
 
     useEffect(() => {
         let result = utilisateurs;
@@ -287,7 +287,7 @@ const Utilisateurs = () => {
         inactifs: utilisateurs.filter(u => u.actif === false).length,
     };
 
-    if (!isAdmin()) return <Alert status="warning"><AlertIcon />Accès réservé aux administrateurs.</Alert>;
+    if (!isSuperAdmin()) return <Alert status="warning"><AlertIcon />Accès réservé aux super administrateurs.</Alert>;
     if (error) return <Alert status="error"><AlertIcon />{error}</Alert>;
 
     return (

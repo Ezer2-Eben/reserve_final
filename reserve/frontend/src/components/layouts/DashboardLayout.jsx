@@ -82,17 +82,17 @@ const icons = {
 };
 
 const menuItems = [
-  { name: 'Tableau de bord', icon: 'FiHome', path: '/dashboard', roles: ['ADMIN', 'USER'] },
-  { name: 'Réserves', icon: 'FiMap', path: '/dashboard/reserves', roles: ['ADMIN', 'USER'] },
-  { name: 'Alertes', icon: 'FiAlertTriangle', path: '/dashboard/alertes', roles: ['ADMIN', 'USER'] },
-  { name: 'Projets', icon: 'FiFolder', path: '/dashboard/projets', roles: ['ADMIN', 'USER'] },
-  { name: 'Documents', icon: 'FiFileText', path: '/dashboard/documents', roles: ['ADMIN', 'USER'] },
-  { name: 'Litiges', icon: 'FiShield', path: '/dashboard/litiges', roles: ['ADMIN', 'USER'] },
-  { name: 'Occupations', icon: 'FiActivity', path: '/dashboard/occupations', roles: ['ADMIN', 'USER'] },
-  { name: 'Rapports', icon: 'FiBarChart2', path: '/dashboard/rapports', roles: ['ADMIN', 'USER'] },
-  { name: 'Historique', icon: 'FiClock', path: '/dashboard/historique', roles: ['ADMIN', 'USER'] },
-  { name: 'Exploration', icon: 'FiNavigation', path: '/exploration', roles: ['ADMIN', 'USER'] },
-  { name: 'Utilisateurs', icon: 'FiUsers', path: '/dashboard/utilisateurs', roles: ['ADMIN'] },
+  { name: 'Tableau de bord', icon: 'FiHome', path: '/dashboard', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Réserves', icon: 'FiMap', path: '/dashboard/reserves', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Alertes', icon: 'FiAlertTriangle', path: '/dashboard/alertes', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Projets', icon: 'FiFolder', path: '/dashboard/projets', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Documents', icon: 'FiFileText', path: '/dashboard/documents', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Litiges', icon: 'FiShield', path: '/dashboard/litiges', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Occupations', icon: 'FiActivity', path: '/dashboard/occupations', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Rapports', icon: 'FiBarChart2', path: '/dashboard/rapports', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Historique', icon: 'FiClock', path: '/dashboard/historique', roles: ['SUPER_ADMIN'] },
+  { name: 'Exploration', icon: 'FiNavigation', path: '/exploration', roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'Utilisateurs', icon: 'FiUsers', path: '/dashboard/utilisateurs', roles: ['SUPER_ADMIN'] },
 ];
 
 const getPageTitle = (path) => {
@@ -239,7 +239,11 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
             </HStack>
           </MenuButton>
           <MenuList shadow="lg" border="none">
-            <MenuItem icon={<FiSettings />} onClick={() => navigate('/dashboard/settings')}>Paramètres</MenuItem>
+            {user?.role === 'SUPER_ADMIN' && (
+              <MenuItem icon={<FiSettings />} onClick={() => navigate('/dashboard/settings')}>
+                Paramètres
+              </MenuItem>
+            )}
             <MenuDivider />
             <MenuItem icon={<FiLogOut />} onClick={handleLogout} color="red.500" fontWeight="500">Déconnexion</MenuItem>
           </MenuList>

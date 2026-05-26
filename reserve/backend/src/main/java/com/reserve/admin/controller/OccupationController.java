@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -39,16 +40,19 @@ public class OccupationController {
         return auth != null ? auth.getName() : "système";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<List<Occupation>> getAll() {
         return ResponseEntity.ok(occupationRepository.findAll());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/reserve/{reserveId}")
     public ResponseEntity<List<Occupation>> getByReserve(@PathVariable Long reserveId) {
         return ResponseEntity.ok(occupationRepository.findByReserveId(reserveId));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Occupation occupation) {
         try {
@@ -87,6 +91,7 @@ public class OccupationController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Occupation data) {
         return occupationRepository.findById(id).map(occ -> {
@@ -104,6 +109,7 @@ public class OccupationController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         return occupationRepository.findById(id).map(occ -> {

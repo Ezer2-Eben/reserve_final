@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -38,16 +39,19 @@ public class LitigeController {
         return auth != null ? auth.getName() : "système";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<List<Litige>> getAll() {
         return ResponseEntity.ok(litigeRepository.findAll());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/reserve/{reserveId}")
     public ResponseEntity<List<Litige>> getByReserve(@PathVariable Long reserveId) {
         return ResponseEntity.ok(litigeRepository.findByReserveId(reserveId));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/statut/{statut}")
     public ResponseEntity<List<Litige>> getByStatut(@PathVariable String statut) {
         try {
@@ -57,6 +61,7 @@ public class LitigeController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Litige litige) {
         try {
@@ -79,6 +84,7 @@ public class LitigeController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Litige data) {
         return litigeRepository.findById(id).map(litige -> {
@@ -98,6 +104,7 @@ public class LitigeController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         return litigeRepository.findById(id).map(litige -> {
