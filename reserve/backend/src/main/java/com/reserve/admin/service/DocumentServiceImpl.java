@@ -100,6 +100,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     /**
      * Upload un fichier et créer un document (version complète avec categorie et projetId)
+     * Résilient : si l'écriture sur disque échoue (filesystem éphémère comme Render),
+     * le contenu du fichier est encodé en base64 et stocké dans le champ url.
      */
     public Document uploadFile(MultipartFile file, Long reserveId, String nomFichier,
                                String categorie, Long projetId) throws IOException {
@@ -117,8 +119,27 @@ public class DocumentServiceImpl implements DocumentService {
             }
         }
 
-        // Upload le fichier et créer le document
-        Document document = fileUploadService.uploadFile(file, reserve, nomFichier);
+        Document document;
+        try {
+            // Tenter l'écriture sur le filesystem local
+            document = fileUploadService.uploadFile(file, reserve, nomFichier);
+        } catch (Exception e) {
+            // Fallback : stocker le contenu en base64 comme data URL
+            System.err.println("[DocumentService] Filesystem unavailable, storing file as base64: " + e.getMessage());
+            document = new Document();
+            document.setNomFichier(nomFichier);
+            document.setNomFichierOriginal(file.getOriginalFilename());
+            document.setTypeFichier(detectFileType(file.getOriginalFilename()));
+            document.setTailleFichier(file.getSize());
+            document.setReserve(reserve);
+            document.setDateUpload(LocalDateTime.now());
+
+            // Encode file bytes as base64 data URL
+            byte[] fileBytes = file.getBytes();
+            String base64 = java.util.Base64.getEncoder().encodeToString(fileBytes);
+            String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+            document.setUrl("data:" + contentType + ";base64," + base64);
+        }
 
         // Associer la catégorie si fournie
         if (categorie != null && !categorie.trim().isEmpty()) {
@@ -135,6 +156,22 @@ public class DocumentServiceImpl implements DocumentService {
 
         // Sauvegarder en base de données
         return documentRepository.save(document);
+    }
+
+    /**
+     * Détecte le type de fichier depuis le nom de fichier
+     */
+    private String detectFileType(String filename) {
+        if (filename == null) return "AUTRE";
+        String lower = filename.toLowerCase();
+        if (lower.endsWith(".pdf")) return "PDF";
+        if (lower.endsWith(".doc") || lower.endsWith(".docx")) return "DOC";
+        if (lower.endsWith(".xls") || lower.endsWith(".xlsx")) return "XLS";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif")) return "IMG";
+        if (lower.endsWith(".mp4") || lower.endsWith(".avi") || lower.endsWith(".mov")) return "VIDEO";
+        if (lower.endsWith(".mp3") || lower.endsWith(".wav")) return "AUDIO";
+        if (lower.endsWith(".zip") || lower.endsWith(".rar")) return "ZIP";
+        return "AUTRE";
     }
 
     /**
