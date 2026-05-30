@@ -28,7 +28,8 @@ public class Document {
     @Column(name = "categorie")
     private String categorie;
     
-    private String url; // Gardé pour compatibilité, mais optionnel maintenant
+    @Column(columnDefinition = "TEXT")
+    private String url; // Stockage base64 en fallback si filesystem indisponible
     
     @Column(name = "chemin_fichier")
     private String cheminFichier;

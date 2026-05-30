@@ -315,11 +315,14 @@ export const documentService = {
   // Nouvelles méthodes pour l'upload de fichiers
   uploadFile: async (formData) => {
     try {
+      // IMPORTANT: Ne PAS définir Content-Type manuellement avec FormData.
+      // Axios le fait automatiquement avec le bon boundary (multipart/form-data; boundary=...).
       const response = await axios.post(`${API_BASE_URL}/documents/upload`, formData, {
         headers: {
           ...getAuthHeaders(),
-          'Content-Type': 'multipart/form-data'
-        }
+          // Content-Type intentionnellement absent — axios + FormData le génère automatiquement
+        },
+        timeout: 60000, // 60 secondes pour les gros fichiers
       });
       return response.data;
     } catch (error) {
