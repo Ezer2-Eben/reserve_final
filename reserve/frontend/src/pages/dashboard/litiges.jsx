@@ -1,5 +1,5 @@
 import {
-  Badge, Box, Button, Card, CardBody, Flex, FormControl, FormLabel, Heading,
+  Badge, Box, Button, Card, CardBody, Divider, Flex, FormControl, FormLabel, Heading,
   HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid,
   Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, VStack,
@@ -11,6 +11,7 @@ import {
   FiCalendar, FiMapPin, FiEye, FiDownload
 } from 'react-icons/fi';
 
+import InlineDocumentUploader, { uploadPendingDocuments } from '../../components/document/InlineDocumentUploader';
 import { litigeService, reserveService, documentService } from '../../services/apiService';
 
 const LITIGE_TYPES = {
@@ -42,6 +43,8 @@ const Litiges = () => {
   const [viewLitige, setViewLitige] = useState(null);
   const [viewDocuments, setViewDocuments] = useState([]);
   const [loadingViewDocs, setLoadingViewDocs] = useState(false);
+  const [pendingDocs, setPendingDocs] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api';
@@ -104,6 +107,7 @@ const Litiges = () => {
 
   const handleOpenCreate = () => {
     setSelectedLitige(null);
+    setPendingDocs([]);
     setFormData({
       titre: '',
       description: '',
@@ -120,6 +124,7 @@ const Litiges = () => {
 
   const handleOpenEdit = (litige) => {
     setSelectedLitige(litige);
+    setPendingDocs([]);
     setFormData({
       titre: litige.titre || '',
       description: litige.description || '',
@@ -146,7 +151,9 @@ const Litiges = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
+      const reserveId = formData.reserve.id;
       if (selectedLitige) {
         await litigeService.update(selectedLitige.id, formData);
         toast({
@@ -162,6 +169,21 @@ const Litiges = () => {
           duration: 3000
         });
       }
+
+      // Upload des documents joints
+      if (pendingDocs.length > 0) {
+        try {
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile);
+          toast({
+            title: `${pendingDocs.length} document(s) joint(s) avec succès`,
+            status: 'success',
+            duration: 3000,
+          });
+        } catch {
+          toast({ title: 'Avertissement', description: "Certains documents n'ont pas pu être uploadés.", status: 'warning', duration: 4000 });
+        }
+      }
+
       onClose();
       fetchData();
     } catch (err) {
@@ -171,6 +193,8 @@ const Litiges = () => {
         status: 'error',
         duration: 3000
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -576,11 +600,20 @@ const Litiges = () => {
                     onChange={(e) => setFormData({ ...formData, procedureJuridique: e.target.value })}
                   />
                 </FormControl>
+
+                <Divider />
+
+                {/* Upload documents */}
+                <InlineDocumentUploader
+                  reserveId={formData.reserve.id}
+                  entityLabel="ce litige"
+                  onFilesChange={setPendingDocs}
+                />
               </VStack>
             </ModalBody>
             <ModalFooter>
               <Button variant="ghost" mr={3} onClick={onClose}>Annuler</Button>
-              <Button type="submit" colorScheme="brand">Enregistrer</Button>
+              <Button type="submit" colorScheme="brand" isLoading={isSubmitting} loadingText="Enregistrement...">Enregistrer</Button>
             </ModalFooter>
           </ModalContent>
         </form>

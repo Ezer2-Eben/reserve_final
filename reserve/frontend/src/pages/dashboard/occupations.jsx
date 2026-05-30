@@ -1,29 +1,64 @@
 import {
-  Badge, Box, Button, Card, CardBody, Flex, FormControl, FormLabel,
-  Heading, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
-  ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid,
-  Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, VStack,
-  useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber
+  Badge,
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Divider,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Progress,
+  Select,
+  SimpleGrid,
+  Spinner,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useDisclosure,
+  useToast,
+  Tag,
+  Textarea,
+  VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
-  FiAlertTriangle, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiUser,
-  FiCalendar, FiEye
+  FiAlertTriangle, FiCalendar, FiEdit2, FiEye, FiMapPin, FiPlus, FiTrash2, FiUser,
 } from 'react-icons/fi';
 
-import { occupationService, reserveService } from '../../services/apiService';
+import InlineDocumentUploader, { uploadPendingDocuments } from '../../components/document/InlineDocumentUploader';
+import { documentService, occupationService, reserveService } from '../../services/apiService';
 
 const OCCUPATION_TYPES = {
   TEMPORAIRE: { label: 'Temporaire', color: 'blue' },
   ILLEGALE: { label: 'Illégale', color: 'red' },
-  AUTORISEE: { label: 'Autorisée', color: 'green' }
+  AUTORISEE: { label: 'Autorisée', color: 'green' },
 };
 
 const OCCUPATION_STATUS = {
   ACTIVE: { label: 'Active', color: 'red' },
   REGULARISEE: { label: 'Régularisée', color: 'green' },
   EVACUEE: { label: 'Évacuée', color: 'gray' },
-  EN_COURS_EVACUATION: { label: 'En cours d\'évacuation', color: 'orange' }
+  EN_COURS_EVACUATION: { label: "En cours d'évacuation", color: 'orange' },
 };
 
 const Occupations = () => {
@@ -40,6 +75,11 @@ const Occupations = () => {
   const [viewOccupation, setViewOccupation] = useState(null);
   const toast = useToast();
 
+  // Superficie info
+  const [superficieInfo, setSuperficieInfo] = useState(null);
+  const [pendingDocs, setPendingDocs] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     typeOccupation: 'TEMPORAIRE',
     statut: 'ACTIVE',
@@ -48,7 +88,7 @@ const Occupations = () => {
     description: '',
     dateDebut: '',
     dateFin: '',
-    reserve: { id: '' }
+    reserve: { id: '' },
   });
 
   const fetchData = async () => {
@@ -56,7 +96,7 @@ const Occupations = () => {
       setIsLoading(true);
       const [oList, rList] = await Promise.all([
         occupationService.getAll(),
-        reserveService.getAll()
+        reserveService.getAll(),
       ]);
       setOccupations(oList);
       setReserves(rList);
@@ -66,7 +106,7 @@ const Occupations = () => {
         description: 'Impossible de charger les occupations.',
         status: 'error',
         duration: 3000,
-        isClosable: true
+        isClosable: true,
       });
     } finally {
       setIsLoading(false);
@@ -77,8 +117,44 @@ const Occupations = () => {
     fetchData();
   }, []);
 
+  // Calculer la superficie disponible lorsqu'une réserve est sélectionnée
+  const updateSuperficieInfo = (reserveId) => {
+    if (!reserveId) {
+      setSuperficieInfo(null);
+      return;
+    }
+    const reserve = reserves.find((r) => String(r.id) === String(reserveId));
+    if (!reserve) {
+      setSuperficieInfo(null);
+      return;
+    }
+
+    const totalReserve = parseFloat(reserve.superficie) || 0;
+
+    // Somme des occupations actives sur cette réserve (hors l'occupation en cours d'édition)
+    const occupationsReserve = occupations.filter(
+      (o) =>
+        String(o.reserve?.id) === String(reserveId) &&
+        o.statut !== 'EVACUEE' &&
+        (!selectedOccupation || o.id !== selectedOccupation.id),
+    );
+    const totalOccupe = occupationsReserve.reduce(
+      (sum, o) => sum + (parseFloat(o.superficie) || 0),
+      0,
+    );
+
+    setSuperficieInfo({
+      reserveNom: reserve.nom,
+      totalReserve,
+      totalOccupe,
+      disponible: Math.max(0, totalReserve - totalOccupe),
+    });
+  };
+
   const handleOpenCreate = () => {
     setSelectedOccupation(null);
+    setPendingDocs([]);
+    setSuperficieInfo(null);
     setFormData({
       typeOccupation: 'TEMPORAIRE',
       statut: 'ACTIVE',
@@ -87,13 +163,15 @@ const Occupations = () => {
       description: '',
       dateDebut: new Date().toISOString().split('T')[0],
       dateFin: '',
-      reserve: { id: reserves[0]?.id || '' }
+      reserve: { id: reserves[0]?.id || '' },
     });
+    if (reserves[0]?.id) updateSuperficieInfo(reserves[0].id);
     onOpen();
   };
 
   const handleOpenEdit = (occ) => {
     setSelectedOccupation(occ);
+    setPendingDocs([]);
     setFormData({
       typeOccupation: occ.typeOccupation || 'TEMPORAIRE',
       statut: occ.statut || 'ACTIVE',
@@ -102,41 +180,75 @@ const Occupations = () => {
       description: occ.description || '',
       dateDebut: occ.dateDebut || '',
       dateFin: occ.dateFin || '',
-      reserve: { id: occ.reserve?.id || '' }
+      reserve: { id: occ.reserve?.id || '' },
     });
+    updateSuperficieInfo(occ.reserve?.id);
     onOpen();
+  };
+
+  const handleReserveChange = (e) => {
+    const id = e.target.value;
+    setFormData({ ...formData, reserve: { id } });
+    updateSuperficieInfo(id);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.reserve.id) {
-      toast({
-        title: 'Erreur',
-        description: 'Veuillez sélectionner une réserve.',
-        status: 'warning',
-        duration: 3000
-      });
+      toast({ title: 'Erreur', description: 'Veuillez sélectionner une réserve.', status: 'warning', duration: 3000 });
       return;
     }
 
+    // Validation : superficie ne dépasse pas le disponible
+    if (superficieInfo && formData.superficie) {
+      const demanded = parseFloat(formData.superficie);
+      if (demanded > superficieInfo.disponible + (parseFloat(selectedOccupation?.superficie) || 0)) {
+        toast({
+          title: 'Superficie trop grande',
+          description: `La superficie demandée (${demanded} m²) dépasse la superficie disponible (${superficieInfo.disponible.toFixed(2)} m²).`,
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
     try {
+      const reserveId = formData.reserve.id;
+
       if (selectedOccupation) {
         await occupationService.update(selectedOccupation.id, formData);
-        toast({
-          title: 'Occupation mise à jour',
-          status: 'success',
-          duration: 3000
-        });
+        toast({ title: 'Occupation mise à jour', status: 'success', duration: 3000 });
       } else {
         await occupationService.create(formData);
         toast({
           title: 'Occupation enregistrée',
-          description: formData.typeOccupation === 'ILLEGALE' ? 'Une alerte critique a été créée automatiquement.' : null,
+          description:
+            formData.typeOccupation === 'ILLEGALE'
+              ? 'Une alerte critique a été créée automatiquement.'
+              : null,
           status: 'success',
           duration: 5000,
-          isClosable: true
+          isClosable: true,
         });
       }
+
+      // Upload des documents joints
+      if (pendingDocs.length > 0) {
+        try {
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile);
+          toast({
+            title: `${pendingDocs.length} document(s) joint(s) avec succès`,
+            status: 'success',
+            duration: 3000,
+          });
+        } catch {
+          toast({ title: 'Avertissement', description: "Certains documents n'ont pas pu être uploadés.", status: 'warning', duration: 4000 });
+        }
+      }
+
       onClose();
       fetchData();
     } catch (err) {
@@ -144,8 +256,10 @@ const Occupations = () => {
         title: 'Erreur de sauvegarde',
         description: err.response?.data?.message || 'Une erreur est survenue.',
         status: 'error',
-        duration: 3000
+        duration: 3000,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -153,24 +267,17 @@ const Occupations = () => {
     if (!window.confirm('Voulez-vous vraiment supprimer cette occupation ?')) return;
     try {
       await occupationService.delete(id);
-      toast({
-        title: 'Occupation supprimée',
-        status: 'success',
-        duration: 3000
-      });
+      toast({ title: 'Occupation supprimée', status: 'success', duration: 3000 });
       fetchData();
     } catch (err) {
-      toast({
-        title: 'Erreur de suppression',
-        status: 'error',
-        duration: 3000
-      });
+      toast({ title: 'Erreur de suppression', status: 'error', duration: 3000 });
     }
   };
 
   const filteredOccupations = occupations.filter((o) => {
-    const matchesSearch = o.occupant?.toLowerCase().includes(search.toLowerCase()) || 
-                          o.reserve?.nom?.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      o.occupant?.toLowerCase().includes(search.toLowerCase()) ||
+      o.reserve?.nom?.toLowerCase().includes(search.toLowerCase());
     const matchesType = !filterType || o.typeOccupation === filterType;
     const matchesStatut = !filterStatut || o.statut === filterStatut;
     return matchesSearch && matchesType && matchesStatut;
@@ -178,9 +285,9 @@ const Occupations = () => {
 
   const kpis = {
     total: occupations.length,
-    illegales: occupations.filter(o => o.typeOccupation === 'ILLEGALE' && o.statut !== 'EVACUEE').length,
-    temporaires: occupations.filter(o => o.typeOccupation === 'TEMPORAIRE').length,
-    autorisees: occupations.filter(o => o.typeOccupation === 'AUTORISEE').length
+    illegales: occupations.filter((o) => o.typeOccupation === 'ILLEGALE' && o.statut !== 'EVACUEE').length,
+    temporaires: occupations.filter((o) => o.typeOccupation === 'TEMPORAIRE').length,
+    autorisees: occupations.filter((o) => o.typeOccupation === 'AUTORISEE').length,
   };
 
   if (isLoading) {
@@ -329,10 +436,7 @@ const Occupations = () => {
                               aria-label="Voir détails"
                               colorScheme="green"
                               variant="ghost"
-                              onClick={() => {
-                                setViewOccupation(o);
-                                onViewOpen();
-                              }}
+                              onClick={() => { setViewOccupation(o); onViewOpen(); }}
                             />
                             <IconButton
                               size="sm"
@@ -414,21 +518,18 @@ const Occupations = () => {
       </Modal>
 
       {/* Modal Création / Édition */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <form onSubmit={handleSubmit}>
           <ModalContent>
-            <ModalHeader>{selectedOccupation ? 'Modifier l\'occupation' : 'Enregistrer une nouvelle occupation'}</ModalHeader>
+            <ModalHeader>{selectedOccupation ? "Modifier l'occupation" : 'Enregistrer une nouvelle occupation'}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <VStack spacing={4} align="stretch">
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                   <FormControl isRequired>
                     <FormLabel>Réserve concernée</FormLabel>
-                    <Select
-                      value={formData.reserve.id}
-                      onChange={(e) => setFormData({ ...formData, reserve: { id: e.target.value } })}
-                    >
+                    <Select value={formData.reserve.id} onChange={handleReserveChange}>
                       <option value="" disabled>Sélectionner la réserve</option>
                       {reserves.map((r) => (
                         <option key={r.id} value={r.id}>{r.nom}</option>
@@ -438,16 +539,49 @@ const Occupations = () => {
 
                   <FormControl isRequired>
                     <FormLabel>Type d'occupation</FormLabel>
-                    <Select
-                      value={formData.typeOccupation}
-                      onChange={(e) => setFormData({ ...formData, typeOccupation: e.target.value })}
-                    >
+                    <Select value={formData.typeOccupation} onChange={(e) => setFormData({ ...formData, typeOccupation: e.target.value })}>
                       {Object.entries(OCCUPATION_TYPES).map(([k, v]) => (
                         <option key={k} value={k}>{v.label}</option>
                       ))}
                     </Select>
                   </FormControl>
                 </SimpleGrid>
+
+                {/* Bloc superficie disponible */}
+                {superficieInfo && (
+                  <Box bg="blue.50" border="1px" borderColor="blue.200" borderRadius="md" p={3}>
+                    <Heading size="xs" color="blue.700" mb={2}>📐 Superficie de la réserve : {superficieInfo.reserveNom}</Heading>
+                    <SimpleGrid columns={3} spacing={3}>
+                      <Box textAlign="center">
+                        <Text fontSize="xs" color="gray.500">Superficie totale</Text>
+                        <Text fontWeight="bold" color="gray.700">{superficieInfo.totalReserve.toFixed(2)} m²</Text>
+                      </Box>
+                      <Box textAlign="center">
+                        <Text fontSize="xs" color="red.500">Déjà occupé</Text>
+                        <Text fontWeight="bold" color="red.600">{superficieInfo.totalOccupe.toFixed(2)} m²</Text>
+                      </Box>
+                      <Box textAlign="center">
+                        <Text fontSize="xs" color="green.500">Disponible</Text>
+                        <Text fontWeight="bold" color={superficieInfo.disponible > 0 ? 'green.600' : 'red.600'}>
+                          {superficieInfo.disponible.toFixed(2)} m²
+                        </Text>
+                      </Box>
+                    </SimpleGrid>
+                    {superficieInfo.totalReserve > 0 && (
+                      <Box mt={2}>
+                        <Progress
+                          value={(superficieInfo.totalOccupe / superficieInfo.totalReserve) * 100}
+                          colorScheme={superficieInfo.totalOccupe / superficieInfo.totalReserve > 0.8 ? 'red' : 'blue'}
+                          size="sm"
+                          borderRadius="full"
+                        />
+                        <Text fontSize="xs" color="gray.400" mt={1} textAlign="right">
+                          {((superficieInfo.totalOccupe / superficieInfo.totalReserve) * 100).toFixed(1)}% occupé
+                        </Text>
+                      </Box>
+                    )}
+                  </Box>
+                )}
 
                 <FormControl isRequired>
                   <FormLabel>Nom de l'occupant (Collectivité, tiers ou entreprise)</FormLabel>
@@ -461,10 +595,7 @@ const Occupations = () => {
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                   <FormControl isRequired>
                     <FormLabel>Statut actuel</FormLabel>
-                    <Select
-                      value={formData.statut}
-                      onChange={(e) => setFormData({ ...formData, statut: e.target.value })}
-                    >
+                    <Select value={formData.statut} onChange={(e) => setFormData({ ...formData, statut: e.target.value })}>
                       {Object.entries(OCCUPATION_STATUS).map(([k, v]) => (
                         <option key={k} value={k}>{v.label}</option>
                       ))}
@@ -472,11 +603,20 @@ const Occupations = () => {
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel>Superficie occupée (m²)</FormLabel>
+                    <FormLabel>
+                      Superficie occupée (m²)
+                      {superficieInfo && (
+                        <Text as="span" fontSize="xs" color="green.500" ml={2}>
+                          max {superficieInfo.disponible.toFixed(2)} m² disponibles
+                        </Text>
+                      )}
+                    </FormLabel>
                     <Input
                       type="number"
                       step="any"
-                      placeholder="Ex: 0.75"
+                      min="0"
+                      max={superficieInfo ? superficieInfo.disponible + (parseFloat(selectedOccupation?.superficie) || 0) : undefined}
+                      placeholder="Ex: 150.5"
                       value={formData.superficie}
                       onChange={(e) => setFormData({ ...formData, superficie: e.target.value })}
                     />
@@ -511,11 +651,22 @@ const Occupations = () => {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </FormControl>
+
+                <Divider />
+
+                {/* Upload documents */}
+                <InlineDocumentUploader
+                  reserveId={formData.reserve.id}
+                  entityLabel="cette occupation"
+                  onFilesChange={setPendingDocs}
+                />
               </VStack>
             </ModalBody>
             <ModalFooter>
               <Button variant="ghost" mr={3} onClick={onClose}>Annuler</Button>
-              <Button type="submit" colorScheme="brand">Enregistrer</Button>
+              <Button type="submit" colorScheme="brand" isLoading={isSubmitting} loadingText="Enregistrement...">
+                Enregistrer
+              </Button>
             </ModalFooter>
           </ModalContent>
         </form>

@@ -7,6 +7,7 @@ import {
     Button,
     Card,
     CardBody,
+    Divider,
     Flex,
     FormControl,
     FormLabel,
@@ -48,8 +49,9 @@ import {
     FiTrash2
 } from 'react-icons/fi';
 
+import InlineDocumentUploader, { uploadPendingDocuments } from '../../components/document/InlineDocumentUploader';
 import { useAuth } from '../../context/AuthContext';
-import { alerteService, reserveService } from '../../services/apiService';
+import { alerteService, reserveService, documentService } from '../../services/apiService';
 
 const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = false }) => {
   const [formData, setFormData] = useState({
@@ -60,6 +62,7 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
   });
   const [reserves, setReserves] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingDocs, setPendingDocs] = useState([]);
   const toast = useToast();
 
   // Charger les réserves pour le select
@@ -94,6 +97,7 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
         reserveId: '',
       });
     }
+    setPendingDocs([]);
   }, [alerte, isOpen]);
 
     const handleSubmit = async (e) => {
@@ -101,12 +105,11 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
     setIsLoading(true);
 
     try {
-      // Validation des données (identique aux autres onglets)
+      // Validation des données
       if (!formData.reserveId) {
         throw new Error('Veuillez sélectionner une réserve');
       }
 
-      // Structure de données identique aux autres onglets (projets, documents)
       const submitData = {
         ...formData,
         reserve: { id: parseInt(formData.reserveId) }
@@ -116,7 +119,7 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
         await alerteService.update(alerte.id, submitData);
         toast({
           title: 'Alerte mise à jour',
-          description: 'L\'alerte a été mise à jour avec succès',
+          description: "L'alerte a été mise à jour avec succès",
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -125,11 +128,25 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
         await alerteService.create(submitData);
         toast({
           title: 'Alerte créée',
-          description: 'L\'alerte a été créée avec succès',
+          description: "L'alerte a été créée avec succès",
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
+      }
+
+      // Upload des documents joints
+      if (pendingDocs.length > 0 && formData.reserveId) {
+        try {
+          await uploadPendingDocuments(pendingDocs, formData.reserveId, documentService.uploadFile);
+          toast({
+            title: `${pendingDocs.length} document(s) joint(s) avec succès`,
+            status: 'success',
+            duration: 3000,
+          });
+        } catch {
+          toast({ title: 'Avertissement', description: "Certains documents n'ont pas pu être uploadés.", status: 'warning', duration: 4000 });
+        }
       }
       
       onSuccess();
@@ -258,6 +275,17 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
                   </CardBody>
                 </Card>
               ) : null}
+
+              {!isReadOnly && (
+                <>
+                  <Divider />
+                  <InlineDocumentUploader
+                    reserveId={formData.reserveId}
+                    entityLabel="cette alerte"
+                    onFilesChange={setPendingDocs}
+                  />
+                </>
+              )}
             </VStack>
           </ModalBody>
 

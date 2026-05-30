@@ -7,6 +7,7 @@ import {
     Button,
     Card,
     CardBody,
+    Divider,
     Flex,
     SimpleGrid,
     FormControl,
@@ -52,6 +53,7 @@ import {
     FiDownload
 } from 'react-icons/fi';
 
+import InlineDocumentUploader, { uploadPendingDocuments } from '../../components/document/InlineDocumentUploader';
 import { useAuth } from '../../context/AuthContext';
 import { projetService, reserveService, documentService } from '../../services/apiService';
 
@@ -67,6 +69,7 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
   });
   const [reserves, setReserves] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingDocs, setPendingDocs] = useState([]);
   const toast = useToast();
 
   // Charger les réserves pour le select
@@ -104,6 +107,7 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
         reserveId: '',
       });
     }
+    setPendingDocs([]);
   }, [projet, isOpen]);
 
   const handleSubmit = async (e) => {
@@ -111,9 +115,10 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
     setIsLoading(true);
 
     try {
+      const reserveId = formData.reserveId;
       const submitData = {
         ...formData,
-        reserve: { id: parseInt(formData.reserveId) }
+        reserve: { id: parseInt(reserveId) }
       };
 
       if (projet) {
@@ -135,6 +140,21 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
           isClosable: true,
         });
       }
+
+      // Upload des documents joints
+      if (pendingDocs.length > 0 && reserveId) {
+        try {
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile);
+          toast({
+            title: `${pendingDocs.length} document(s) joint(s) avec succès`,
+            status: 'success',
+            duration: 3000,
+          });
+        } catch {
+          toast({ title: 'Avertissement', description: "Certains documents n'ont pas pu être uploadés.", status: 'warning', duration: 4000 });
+        }
+      }
+
       onSuccess();
       onClose();
     } catch (error) {
@@ -255,6 +275,15 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
                   </Select>
                 </FormControl>
               </HStack>
+
+              <Divider />
+
+              {/* Upload documents */}
+              <InlineDocumentUploader
+                reserveId={formData.reserveId}
+                entityLabel="ce projet"
+                onFilesChange={setPendingDocs}
+              />
             </VStack>
           </ModalBody>
 
