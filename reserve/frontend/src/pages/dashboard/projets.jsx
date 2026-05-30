@@ -121,8 +121,11 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
         reserve: { id: parseInt(reserveId) }
       };
 
+      let projetId = null;
+
       if (projet) {
         await projetService.update(projet.id, submitData);
+        projetId = projet.id;
         toast({
           title: 'Projet mis à jour',
           description: 'Le projet a été mis à jour avec succès',
@@ -131,7 +134,9 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
           isClosable: true,
         });
       } else {
-        await projetService.create(submitData);
+        const created = await projetService.create(submitData);
+        // Récupérer l'ID du projet nouvellement créé
+        projetId = created?.id || created?.data?.id || null;
         toast({
           title: 'Projet créé',
           description: 'Le projet a été créé avec succès',
@@ -141,10 +146,10 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
         });
       }
 
-      // Upload des documents joints
+      // Upload des documents joints — liés à la réserve ET au projet
       if (pendingDocs.length > 0 && reserveId) {
         try {
-          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile);
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile, projetId);
           toast({
             title: `${pendingDocs.length} document(s) joint(s) avec succès`,
             status: 'success',

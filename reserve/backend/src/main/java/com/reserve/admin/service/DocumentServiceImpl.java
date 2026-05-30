@@ -1,8 +1,10 @@
 package com.reserve.admin.service;
 
 import com.reserve.admin.model.Document;
+import com.reserve.admin.model.Projet;
 import com.reserve.admin.model.Reserve;
 import com.reserve.admin.repository.DocumentRepository;
+import com.reserve.admin.repository.ProjetRepository;
 import com.reserve.admin.repository.ReserveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,9 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Autowired
     private ReserveRepository reserveRepository;
+
+    @Autowired
+    private ProjetRepository projetRepository;
 
     @Autowired
     private FileUploadService fileUploadService;
@@ -94,29 +99,56 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
-     * Upload un fichier et créer un document
+     * Upload un fichier et créer un document (version complète avec categorie et projetId)
      */
-    public Document uploadFile(MultipartFile file, Long reserveId, String nomFichier) throws IOException {
+    public Document uploadFile(MultipartFile file, Long reserveId, String nomFichier,
+                               String categorie, Long projetId) throws IOException {
         // Récupérer la réserve
         Reserve reserve = reserveRepository.findById(reserveId)
             .orElseThrow(() -> new RuntimeException("Réserve non trouvée avec l'id " + reserveId));
 
+        // Déduire le nom depuis le fichier si non fourni
+        if (nomFichier == null || nomFichier.trim().isEmpty()) {
+            String original = file.getOriginalFilename();
+            if (original != null && original.contains(".")) {
+                nomFichier = original.substring(0, original.lastIndexOf('.'));
+            } else {
+                nomFichier = "Document";
+            }
+        }
+
         // Upload le fichier et créer le document
         Document document = fileUploadService.uploadFile(file, reserve, nomFichier);
-        
+
+        // Associer la catégorie si fournie
+        if (categorie != null && !categorie.trim().isEmpty()) {
+            document.setCategorie(categorie);
+        }
+
+        // Associer le projet si fourni
+        if (projetId != null) {
+            Projet projet = projetRepository.findById(projetId).orElse(null);
+            if (projet != null) {
+                document.setProjet(projet);
+            }
+        }
+
         // Sauvegarder en base de données
         return documentRepository.save(document);
     }
 
     /**
-     * Upload un fichier avec nom automatique basé sur le nom original
+     * Méthode de compatibilité ascendante
+     */
+    public Document uploadFile(MultipartFile file, Long reserveId, String nomFichier) throws IOException {
+        return uploadFile(file, reserveId, nomFichier, null, null);
+    }
+
+    /**
+     * Méthode de compatibilité ascendante (nom automatique)
      */
     public Document uploadFile(MultipartFile file, Long reserveId) throws IOException {
-        String originalFilename = file.getOriginalFilename();
-        String nomFichier = originalFilename != null ? 
-            originalFilename.substring(0, originalFilename.lastIndexOf('.')) : "Document";
-        
-        return uploadFile(file, reserveId, nomFichier);
+        return uploadFile(file, reserveId, null, null, null);
     }
 
     /**

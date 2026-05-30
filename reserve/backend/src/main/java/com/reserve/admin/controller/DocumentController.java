@@ -85,17 +85,15 @@ public class DocumentController {
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam("reserveId") Long reserveId,
-            @RequestParam(value = "nomFichier", required = false) String nomFichier) {
+            @RequestParam(value = "nomFichier", required = false) String nomFichier,
+            @RequestParam(value = "categorie", required = false) String categorie,
+            @RequestParam(value = "projetId", required = false) Long projetId) {
 
         try {
             DocumentServiceImpl documentServiceImpl = (DocumentServiceImpl) documentService;
 
-            Document document;
-            if (nomFichier != null && !nomFichier.trim().isEmpty()) {
-                document = documentServiceImpl.uploadFile(file, reserveId, nomFichier);
-            } else {
-                document = documentServiceImpl.uploadFile(file, reserveId);
-            }
+            String nom = (nomFichier != null && !nomFichier.trim().isEmpty()) ? nomFichier : null;
+            Document document = documentServiceImpl.uploadFile(file, reserveId, nom, categorie, projetId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Fichier uploadé avec succès");

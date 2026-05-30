@@ -179,15 +179,19 @@ const InlineDocumentUploader = ({ reserveId: _reserveId, entityLabel = 'cet él�
  * @param {Array} pendingFiles - Liste { file, categorie }[]
  * @param {number} reserveId - ID de la réserve à associer
  * @param {Function} uploadFileFn - documentService.uploadFile
+ * @param {number|null} projetId - (optionnel) ID du projet à associer
  * @returns {Promise<void>}
  */
-export const uploadPendingDocuments = async (pendingFiles, reserveId, uploadFileFn) => {
+export const uploadPendingDocuments = async (pendingFiles, reserveId, uploadFileFn, projetId = null) => {
   if (!pendingFiles || pendingFiles.length === 0) return;
   for (const pf of pendingFiles) {
     const formData = new FormData();
     formData.append('file', pf.file);
     formData.append('reserveId', reserveId);
     formData.append('categorie', pf.categorie);
+    if (projetId) {
+      formData.append('projetId', projetId);
+    }
     try {
       await uploadFileFn(formData);
     } catch (err) {
