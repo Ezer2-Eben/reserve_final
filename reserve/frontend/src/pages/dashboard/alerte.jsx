@@ -582,16 +582,8 @@ const Alertes = () => {
             <ModalBody>
               <Text>
               Êtes-vous sûr de vouloir supprimer l'alerte "{selectedAlerte?.type}" ?
+              Cette action est irréversible.
               </Text>
-              <InlineDocumentUploader onFilesChange={setPendingDocs} />
-              </VStack>
-
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <FormControl mt={4}>
-                  <FormLabel fontSize="sm" color="brand.600">Envoi des documents en cours ({uploadProgress}%)...</FormLabel>
-                  <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
-                </FormControl>
-              )}
             </ModalBody>
             <ModalFooter bg="gray.50" borderTop="1px" borderColor="gray.100">
             <Button variant="ghost" mr={3} onClick={onDeleteClose}>

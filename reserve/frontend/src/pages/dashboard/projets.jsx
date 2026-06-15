@@ -42,7 +42,6 @@ import {
     TabPanels,
     Tab,
     TabPanel,
-    Textarea,
     Progress
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';

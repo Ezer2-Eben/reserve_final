@@ -96,7 +96,6 @@ const latLonToUTM = (lat, lon) => {
   const f = 1 / 298.257223563;
   const b = a * (1 - f);
   const e2 = (a * a - b * b) / (a * a);
-  const e = Math.sqrt(e2);
   const k0 = 0.9996;
 
   const latRad = (latNum * Math.PI) / 180;
