@@ -369,8 +369,7 @@ const ExplorationPage = () => {
               
               <Divider />
 
-              {geometry && (
-                <>
+              {geometry ? <>
                   <ZoneInfoPanel geometry={geometry} measurements={measurements} zoneName={zoneName} setZoneName={setZoneName} />
                   <Divider />
                   <Card variant="outline">
@@ -391,8 +390,7 @@ const ExplorationPage = () => {
                     link.download = `exploration_${new Date().getTime()}.geojson`;
                     link.click();
                   }}>Exporter GeoJSON</Button>
-                </>
-              )}
+                </> : null}
             </VStack>
           </DrawerBody>
         </DrawerContent>

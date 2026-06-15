@@ -21,7 +21,7 @@ import {
     useColorModeValue,
     useDisclosure,
     VStack
-} from '@chakra-ui/react';
+, Icon } from '@chakra-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRef, useState } from 'react';
 import {
@@ -29,7 +29,7 @@ import {
     FiSearch,
     FiX
 } from 'react-icons/fi';
-import { Icon } from '@chakra-ui/react';
+
 
 
 const MotionBox = motion(Box);

@@ -377,11 +377,9 @@ const VisitePage = () => {
                 _focus={{ borderColor: 'brand.400', boxShadow: '0 0 0 2px var(--chakra-colors-brand-200)', outline: 'none' }}
                 _hover={{ borderColor: 'gray.300' }}
               />
-              {searchQuery && (
-                <InputRightElement>
+              {searchQuery ? <InputRightElement>
                   <IconButton icon={<FiX />} size="sm" variant="ghost" onClick={clearSearch} borderRadius="full" />
-                </InputRightElement>
-              )}
+                </InputRightElement> : null}
             </InputGroup>
           </HStack>
 
@@ -449,17 +447,13 @@ const VisitePage = () => {
                       <Text fontWeight="bold" color="gray.800" noOfLines={1} flex="1">
                         {reserve.properties.nom}
                       </Text>
-                      {reserve.properties.statut && (
-                        <Badge ml={2} colorScheme={reserve.properties.statut === 'RESERVE' ? 'green' : 'blue'} variant="subtle" fontSize="2xs">
+                      {reserve.properties.statut ? <Badge ml={2} colorScheme={reserve.properties.statut === 'RESERVE' ? 'green' : 'blue'} variant="subtle" fontSize="2xs">
                           {reserve.properties.statut}
-                        </Badge>
-                      )}
+                        </Badge> : null}
                     </Flex>
                     <HStack fontSize="xs" color="gray.500" spacing={4}>
                       <HStack spacing={1}><FiMapPin /><Text isTruncated>{reserve.properties.localisation}</Text></HStack>
-                      {reserve.properties.superficie && (
-                        <HStack spacing={1}><FiMap /><Text>{reserve.properties.superficie} ha</Text></HStack>
-                      )}
+                      {reserve.properties.superficie ? <HStack spacing={1}><FiMap /><Text>{reserve.properties.superficie} ha</Text></HStack> : null}
                     </HStack>
                   </CardBody>
                 </Card>
@@ -476,8 +470,7 @@ const VisitePage = () => {
         </Box>
 
         {/* STATISTIQUES PAR RÉGION (Bas du panneau détaché) */}
-        {mapStats && mapStats.byRegion && (
-          <Box p={4} borderTop="1px solid" borderColor="gray.100" bg="gray.50">
+        {mapStats && mapStats.byRegion ? <Box p={4} borderTop="1px solid" borderColor="gray.100" bg="gray.50">
             <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={3} textTransform="uppercase" letterSpacing="wider">
               Stats par Région
             </Text>
@@ -498,13 +491,11 @@ const VisitePage = () => {
                 </Flex>
               ))}
             </SimpleGrid>
-          </Box>
-        )}
+          </Box> : null}
       </Box>
 
       {/* FLOAT OVERLAY - ACTIVE RESERVE (Mobile & Desktop interactions) */}
-      {highlightedZoneId && highlightedZoneName && (
-        <Box
+      {highlightedZoneId && highlightedZoneName ? <Box
           position="absolute"
           bottom={8}
           left="50%"
@@ -542,8 +533,7 @@ const VisitePage = () => {
               Centrer
             </Button>
           </Flex>
-        </Box>
-      )}
+        </Box> : null}
 
       {/* MAP FULL SCREEN */}
       <Box h="100%" w="100%" position="absolute" top={0} left={0} zIndex={1}>

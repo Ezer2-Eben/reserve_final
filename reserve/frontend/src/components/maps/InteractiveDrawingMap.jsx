@@ -207,29 +207,25 @@ const InteractiveDrawingMap = forwardRef((props, ref) => {
       <TileLayer url={tileLayer.url} attribution={tileLayer.attribution} />
 
       {/* Labels optionnels */}
-      {showLabels && style === 'satellite' && (
-        <TileLayer
+      {showLabels && style === 'satellite' ? <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png"
           attribution="&copy; CartoDB"
-        />
-      )}
+        /> : null}
 
       {/* Contrôleur de carte (INTERNE) */}
       <MapController ref={mapControllerRef} />
 
       {/* Couche des communes (sous les formes dessinées) */}
-      {showCommunes && communesData && (
-        <CommunesLayer 
+      {showCommunes && communesData ? <CommunesLayer 
           geoJsonData={communesData}
           visible={showCommunes}
           onFeatureClick={(feature) => {
             console.log('Commune cliquée:', feature.properties);
           }}
-        />
-      )}
+        /> : null}
 
       {/* Réserves existantes en VERT */}
-      {existingReserves && existingReserves.length > 0 && existingReserves.map(reserve => {
+      {existingReserves && existingReserves.length > 0 ? existingReserves.map(reserve => {
         if (!reserve.zone) return null;
         try {
           const zoneData = JSON.parse(reserve.zone);
@@ -253,21 +249,19 @@ const InteractiveDrawingMap = forwardRef((props, ref) => {
               </GeoJSON>
               
               {/* Le marqueur au centre s'il y a des coordonnées */}
-              {reserve.latitude && reserve.longitude && (
-                <Marker position={[reserve.latitude, reserve.longitude]}>
+              {reserve.latitude && reserve.longitude ? <Marker position={[reserve.latitude, reserve.longitude]}>
                   <Popup>
                     <strong>{reserve.nom}</strong><br/>
                     <em>Point central</em>
                   </Popup>
-                </Marker>
-              )}
+                </Marker> : null}
             </React.Fragment>
           );
         } catch (e) {
           console.error("Erreur parsing zone reserve:", reserve.nom, e);
           return null;
         }
-      })}
+      }) : null}
 
       {/* Groupe de formes dessinées */}
       <FeatureGroup ref={featureGroupRef}>

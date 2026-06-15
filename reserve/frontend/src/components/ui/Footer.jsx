@@ -12,7 +12,6 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-
 import {
     FiGithub,
     FiGlobe,

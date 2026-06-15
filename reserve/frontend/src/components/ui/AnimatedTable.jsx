@@ -249,10 +249,8 @@ const AnimatedTable = ({
   return (
     <VStack spacing={4} align="stretch">
       {/* Barre de recherche et filtres */}
-      {(searchable || filterable) && (
-        <Box p={4} bg={bg} borderRadius="lg" border="1px" borderColor={borderColor}>
-          {searchable && (
-            <HStack mb={4}>
+      {(searchable || filterable) ? <Box p={4} bg={bg} borderRadius="lg" border="1px" borderColor={borderColor}>
+          {searchable ? <HStack mb={4}>
               <Box position="relative" w="full">
                 <Box 
                   position="absolute" 
@@ -272,11 +270,9 @@ const AnimatedTable = ({
                   size="sm"
                 />
               </Box>
-            </HStack>
-          )}
+            </HStack> : null}
           {renderFilters()}
-        </Box>
-      )}
+        </Box> : null}
 
       {/* Tableau */}
       <TableContainer
@@ -291,8 +287,7 @@ const AnimatedTable = ({
         <Table variant={variant} size="sm">
           <Thead position="sticky" top={0} bg={bg} zIndex={1}>
             <Tr>
-              {selectable && (
-                <Th w="50px">
+              {selectable ? <Th w="50px">
                   <input
                     type="checkbox"
                     checked={selectedRows.size === filteredData.length && filteredData.length > 0}
@@ -307,8 +302,7 @@ const AnimatedTable = ({
                       }
                     }}
                   />
-                </Th>
-              )}
+                </Th> : null}
               {columns.map(column => (
                 <Th
                   key={column.key}
@@ -342,16 +336,14 @@ const AnimatedTable = ({
                   transition="background 0.2s"
                   bg={selectedRows.has(item.id) ? 'brand.50' : 'transparent'}
                 >
-                  {selectable && (
-                    <Td>
+                  {selectable ? <Td>
                       <input
                         type="checkbox"
                         checked={selectedRows.has(item.id)}
                         onChange={() => handleRowSelection(item.id)}
                         onClick={(e) => e.stopPropagation()}
                       />
-                    </Td>
-                  )}
+                    </Td> : null}
                   {columns.map(column => (
                     <Td key={column.key}>
                       {renderCell(item, column)}

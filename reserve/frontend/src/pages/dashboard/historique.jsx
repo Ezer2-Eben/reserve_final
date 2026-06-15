@@ -213,13 +213,11 @@ const Historique = () => {
                         ))}
                     </Select>
 
-                    {(moduleFilter || actionFilter || communeFilter || searchTerm) && (
-                        <Button variant="ghost" size="sm" onClick={() => {
+                    {(moduleFilter || actionFilter || communeFilter || searchTerm) ? <Button variant="ghost" size="sm" onClick={() => {
                             setModuleFilter(''); setActionFilter(''); setCommuneFilter(''); setSearchTerm('');
                         }}>
                             Effacer les filtres
-                        </Button>
-                    )}
+                        </Button> : null}
                 </HStack>
 
                 {/* Tableau */}

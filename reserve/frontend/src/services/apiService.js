@@ -147,12 +147,8 @@ export const reserveService = {
   },
 
   delete: async (id) => {
-    try {
-      const response = await apiClient.delete(`/reserves/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await apiClient.delete(`/reserves/${id}`);
+    return response.data;
   },
 
   // Retourne les compteurs d'entités liées (documents, litiges, occupations, alertes, projets)

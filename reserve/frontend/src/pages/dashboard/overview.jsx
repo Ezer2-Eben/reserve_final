@@ -91,8 +91,7 @@ const StatCard = ({ title, value, icon, change, changeType, isLoading }) => {
           >
             <Icon as={icon} boxSize={5} />
           </Box>
-          {change && (
-            <Badge 
+          {change ? <Badge 
               colorScheme={isPositive ? 'green' : 'red'} 
               bg={isPositive ? 'green.50' : 'red.50'}
               color={isPositive ? 'green.600' : 'red.600'}
@@ -105,8 +104,7 @@ const StatCard = ({ title, value, icon, change, changeType, isLoading }) => {
             >
               <Icon as={isPositive ? FiArrowUpRight : FiArrowDownRight} />
               {change}
-            </Badge>
-          )}
+            </Badge> : null}
         </HStack>
         <VStack align="flex-start" spacing={1}>
           <Text fontSize="sm" color="gray.500" fontWeight="600">

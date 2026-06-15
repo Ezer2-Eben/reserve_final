@@ -232,7 +232,7 @@ const DocumentList = () => {
         duration: 3000,
         isClosable: true,
       });
-            fetchData();();
+      fetchData();
     } catch (error) {
       toast({
         title: 'Erreur',

@@ -99,13 +99,11 @@ const UtilisateurFormModal = ({ isOpen, onClose, utilisateur = null, onSuccess }
                                     <option value="ADMIN">Administrateur — Gestion complète</option>
                                 </Select>
                             </FormControl>
-                            {isEdit && (
-                                <FormControl display="flex" alignItems="center">
+                            {isEdit ? <FormControl display="flex" alignItems="center">
                                     <FormLabel mb={0}>Compte actif</FormLabel>
                                     <Switch colorScheme="green" isChecked={formData.actif}
                                         onChange={e => setFormData(p => ({ ...p, actif: e.target.checked }))} />
-                                </FormControl>
-                            )}
+                                </FormControl> : null}
                         </VStack>
                     </ModalBody>
                     <ModalFooter>

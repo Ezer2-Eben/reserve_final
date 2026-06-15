@@ -1,5 +1,4 @@
 // src/components/maps/TogoLeafletMap.jsx
-import React, { useEffect, useRef, useState } from 'react';
 import { 
   Box, Button, HStack, VStack, Text, 
   IconButton, Tooltip, useToast, Badge,
@@ -9,18 +8,19 @@ import {
   AccordionButton, AccordionPanel, AccordionIcon
 } from '@chakra-ui/react';
 import L from 'leaflet';
+import React, { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import {
+  FiTrash2, FiDownload, FiSettings, FiGrid,
+  FiCrosshair, FiSquare, FiTarget, FiMap
+} from 'react-icons/fi';
 import { FeatureGroup, MapContainer, TileLayer, Polygon, 
          Marker, Popup, GeoJSON, LayersControl } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 import axios from 'axios';
 import * as turf from '@turf/turf';
-import {
-  FiTrash2, FiDownload, FiSettings, FiGrid,
-  FiCrosshair, FiSquare, FiTarget, FiMap
-} from 'react-icons/fi';
 
 const TogoLeafletMap = ({ 
   onZoneSelect,

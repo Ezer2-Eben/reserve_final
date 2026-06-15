@@ -90,7 +90,6 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
   const [isLoading, setIsLoading] = useState(false);
   const [reserves, setReserves] = useState([]);
   const [spatialStats, setSpatialStats] = useState(null);
-  const [linkedError, setLinkedError] = useState(null);
 
   const toast = useToast();
 
@@ -103,7 +102,6 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
 
   useEffect(() => {
     if (reserve && isOpen) {
-      setLinkedError(null);
       setLitiges([]);
       setOccupations([]);
       setDocuments([]);
@@ -344,11 +342,11 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                 <Tab>📝 Informations</Tab>
                 <Tab>🗺️ Cartographie</Tab>
                 {spatialStats ? <Tab>📊 Analyses</Tab> : null}
-                {isReadOnly && <Tab>⚖️ Litiges ({litiges.length})</Tab>}
-                {isReadOnly && <Tab>📂 Documents ({documents.length})</Tab>}
-                {isReadOnly && <Tab>🏠 Occupations ({occupations.length})</Tab>}
-                {isReadOnly && <Tab>🚨 Alertes ({alertes.length})</Tab>}
-                {isReadOnly && <Tab>🏗️ Projets ({projets.length})</Tab>}
+                {isReadOnly ? <Tab>⚖️ Litiges ({litiges.length})</Tab> : null}
+                {isReadOnly ? <Tab>📂 Documents ({documents.length})</Tab> : null}
+                {isReadOnly ? <Tab>🏠 Occupations ({occupations.length})</Tab> : null}
+                {isReadOnly ? <Tab>🚨 Alertes ({alertes.length})</Tab> : null}
+                {isReadOnly ? <Tab>🏗️ Projets ({projets.length})</Tab> : null}
               </TabList>
 
               <TabPanels>
@@ -409,11 +407,9 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                           <option value="PROTEGE">Protégée</option>
                           <option value="COMMUNAUTAIRE">Communautaire</option>
                         </Select>
-                        {formData.type && (
-                          <Badge mt={1} colorScheme={formData.type === 'SPECIALE' ? 'orange' : 'blue'}>
+                        {formData.type ? <Badge mt={1} colorScheme={formData.type === 'SPECIALE' ? 'orange' : 'blue'}>
                             {formData.type === 'SPECIALE' ? '📋 Cession — Places publiques / Marchés' : '📌 Attribution — Réserve ordinaire'}
-                          </Badge>
-                        )}
+                          </Badge> : null}
                       </FormControl>
                     </HStack>
 
@@ -587,8 +583,7 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                     </VStack>
                   </TabPanel> : null}
 
-                {isReadOnly && (
-                  <TabPanel>
+                {isReadOnly ? <TabPanel>
                     {loadingLinked ? (
                       <Flex justify="center" align="center" p={8}>
                         <Spinner size="lg" color="brand.500" />
@@ -636,11 +631,9 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </Table>
                       </Box>
                     )}
-                  </TabPanel>
-                )}
+                  </TabPanel> : null}
 
-                {isReadOnly && (
-                  <TabPanel>
+                {isReadOnly ? <TabPanel>
                     {loadingLinked ? (
                       <Flex justify="center" align="center" p={8}>
                         <Spinner size="lg" color="brand.500" />
@@ -693,11 +686,9 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </Table>
                       </Box>
                     )}
-                  </TabPanel>
-                )}
+                  </TabPanel> : null}
 
-                {isReadOnly && (
-                  <TabPanel>
+                {isReadOnly ? <TabPanel>
                     {loadingLinked ? (
                       <Flex justify="center" align="center" p={8}>
                         <Spinner size="lg" color="brand.500" />
@@ -753,11 +744,9 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </Table>
                       </Box>
                     )}
-                  </TabPanel>
-                )}
+                  </TabPanel> : null}
 
-                {isReadOnly && (
-                  <TabPanel>
+                {isReadOnly ? <TabPanel>
                     {loadingLinked ? (
                       <Flex justify="center" align="center" p={8}>
                         <Spinner size="lg" color="brand.500" />
@@ -813,11 +802,9 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </Table>
                       </Box>
                     )}
-                  </TabPanel>
-                )}
+                  </TabPanel> : null}
 
-                {isReadOnly && (
-                  <TabPanel>
+                {isReadOnly ? <TabPanel>
                     {loadingLinked ? (
                       <Flex justify="center" align="center" p={8}>
                         <Spinner size="lg" color="brand.500" />
@@ -867,8 +854,7 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </Table>
                       </Box>
                     )}
-                  </TabPanel>
-                )}
+                  </TabPanel> : null}
               </TabPanels>
             </Tabs>
           </ModalBody>

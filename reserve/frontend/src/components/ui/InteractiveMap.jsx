@@ -640,18 +640,14 @@ const InteractiveMap = forwardRef((props, ref) => {
   return (
     <VStack spacing={4} align="stretch" w="full">
       {/* Loader */}
-      {isLoadingData && (
-        <Box textAlign="center" py={8}>
+      {isLoadingData ? <Box textAlign="center" py={8}>
           <Text color="gray.500">⏳ Chargement des communes du Togo...</Text>
-        </Box>
-      )}
+        </Box> : null}
 
       {/* Barre d'information */}
-      {showTopBar && (
-        <HStack justify="space-between" flexWrap="wrap" gap={2}>
+      {showTopBar ? <HStack justify="space-between" flexWrap="wrap" gap={2}>
           <HStack spacing={3} flexWrap="wrap">
-            {mapStats && (
-              <>
+            {mapStats ? <>
                 <Badge colorScheme="blue" fontSize="sm" px={3} py={1}>
                   📍 {mapStats.communes} Communes
                 </Badge>
@@ -661,8 +657,7 @@ const InteractiveMap = forwardRef((props, ref) => {
                 <Badge colorScheme="orange" fontSize="sm" px={3} py={1}>
                   🏛️ {mapStats.prefectures} Préfectures
                 </Badge>
-              </>
-            )}
+              </> : null}
           </HStack>
           
           <HStack spacing={2}>
@@ -682,12 +677,10 @@ const InteractiveMap = forwardRef((props, ref) => {
               🔄 Recentrer
             </Button>
           </HStack>
-        </HStack>
-      )}
+        </HStack> : null}
 
       {/* Statistiques par région */}
-      {mapStats && mapStats.byRegion && showRegionStats && (
-        <SimpleGrid columns={{ base: 2, md: 5 }} spacing={2}>
+      {mapStats && mapStats.byRegion && showRegionStats ? <SimpleGrid columns={{ base: 2, md: 5 }} spacing={2}>
           {Object.entries(mapStats.byRegion).map(([region, count]) => (
             <Card key={region} size="sm" variant="outline">
               <CardBody py={2}>
@@ -704,12 +697,10 @@ const InteractiveMap = forwardRef((props, ref) => {
               </CardBody>
             </Card>
           ))}
-        </SimpleGrid>
-      )}
+        </SimpleGrid> : null}
 
       {/* Commune sélectionnée */}
-      {selectedCommune && (
-        <Box bg="blue.50" p={3} borderRadius="md" border="1px" borderColor="blue.200">
+      {selectedCommune ? <Box bg="blue.50" p={3} borderRadius="md" border="1px" borderColor="blue.200">
           <HStack justify="space-between">
             <VStack align="start" spacing={0}>
               <Text fontSize="sm" fontWeight="bold" color="blue.800">
@@ -728,17 +719,14 @@ const InteractiveMap = forwardRef((props, ref) => {
               </Badge>
             </VStack>
           </HStack>
-        </Box>
-      )}
+        </Box> : null}
 
       {/* Zone en surbrillance */}
-      {highlightZoneId && (
-        <Box bg="red.50" p={2} borderRadius="md" border="1px" borderColor="red.200">
+      {highlightZoneId ? <Box bg="red.50" p={2} borderRadius="md" border="1px" borderColor="red.200">
           <Text fontSize="xs" fontWeight="bold" color="red.700">
             🎯 Zone en surbrillance (ID: {highlightZoneId})
           </Text>
-        </Box>
-      )}
+        </Box> : null}
 
       {/* Carte MapTiler */}
       <Box position="relative" w="full" h="700px" borderRadius="lg" overflow="hidden" border="2px" borderColor="gray.200" shadow="xl">
@@ -812,12 +800,10 @@ const InteractiveMap = forwardRef((props, ref) => {
             <Box w="20px" h="20px" bg="#ff7800" borderRadius="sm" border="1px" borderColor="gray.300" />
             <Text fontSize="xs" fontWeight="medium">Réserves</Text>
           </HStack>
-          {highlightZoneId && (
-            <HStack>
+          {highlightZoneId ? <HStack>
               <Box w="20px" h="20px" bg="#ff0000" borderRadius="sm" border="1px" borderColor="gray.300" />
               <Text fontSize="xs" fontWeight="medium">Zone active</Text>
-            </HStack>
-          )}
+            </HStack> : null}
         </SimpleGrid>
       </Box>
 

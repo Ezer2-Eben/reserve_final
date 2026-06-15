@@ -73,8 +73,7 @@ const ZoneInfoPanel = ({
             <Text><strong>Périmètre:</strong> {(measurements.perimeter / 1000).toFixed(2)} km</Text>
           </SimpleGrid>
 
-          {measurements.bounds && (
-            <>
+          {measurements.bounds ? <>
               <Heading size="xs" mt={4} mb={2}>Limites géographiques</Heading>
               <SimpleGrid columns={2} spacing={2} fontSize="sm">
                 <Text><strong>Nord:</strong> {measurements.bounds.north?.toFixed(6)}°</Text>
@@ -82,8 +81,7 @@ const ZoneInfoPanel = ({
                 <Text><strong>Est:</strong> {measurements.bounds.east?.toFixed(6)}°</Text>
                 <Text><strong>Ouest:</strong> {measurements.bounds.west?.toFixed(6)}°</Text>
               </SimpleGrid>
-            </>
-          )}
+            </> : null}
 
           <HStack mt={4} spacing={2}>
             <Tooltip label="Copier les coordonnées">

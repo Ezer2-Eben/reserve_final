@@ -65,11 +65,9 @@ const DrawingToolsPanel = ({
             {isDrawing ? "Arrêter le dessin" : "Commencer à dessiner"}
           </Button>
 
-          {isDrawing && (
-            <Text fontSize="sm" color="gray.600" textAlign="center">
+          {isDrawing ? <Text fontSize="sm" color="gray.600" textAlign="center">
               Cliquez sur la carte pour commencer à dessiner
-            </Text>
-          )}
+            </Text> : null}
         </CardBody>
       </Card>
 
@@ -98,8 +96,7 @@ const DrawingToolsPanel = ({
       </Card>
 
       {/* Mesures */}
-      {geometry && (
-        <Card>
+      {geometry ? <Card>
           <CardBody>
             <Heading size="sm" mb={3}>📏 Mesures</Heading>
             
@@ -139,12 +136,10 @@ const DrawingToolsPanel = ({
               Effacer le dessin
             </Button>
           </CardBody>
-        </Card>
-      )}
+        </Card> : null}
 
       {/* Instructions */}
-      {!geometry && isDrawing && (
-        <Card bg="blue.50" borderColor="blue.200">
+      {!geometry && isDrawing ? <Card bg="blue.50" borderColor="blue.200">
           <CardBody>
             <Heading size="xs" mb={2}>Instructions</Heading>
             <VStack align="start" spacing={1}>
@@ -154,8 +149,7 @@ const DrawingToolsPanel = ({
               <Text fontSize="sm">4. Les mesures seront calculées automatiquement</Text>
             </VStack>
           </CardBody>
-        </Card>
-      )}
+        </Card> : null}
     </VStack>
   );
 };

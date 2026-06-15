@@ -548,8 +548,7 @@ const Occupations = () => {
                 </SimpleGrid>
 
                 {/* Bloc superficie disponible */}
-                {superficieInfo && (
-                  <Box bg="blue.50" border="1px" borderColor="blue.200" borderRadius="md" p={3}>
+                {superficieInfo ? <Box bg="blue.50" border="1px" borderColor="blue.200" borderRadius="md" p={3}>
                     <Heading size="xs" color="blue.700" mb={2}>📐 Superficie de la réserve : {superficieInfo.reserveNom}</Heading>
                     <SimpleGrid columns={3} spacing={3}>
                       <Box textAlign="center">
@@ -580,8 +579,7 @@ const Occupations = () => {
                         </Text>
                       </Box>
                     )}
-                  </Box>
-                )}
+                  </Box> : null}
 
                 <FormControl isRequired>
                   <FormLabel>Nom de l'occupant (Collectivité, tiers ou entreprise)</FormLabel>
@@ -605,11 +603,9 @@ const Occupations = () => {
                   <FormControl isRequired>
                     <FormLabel>
                       Superficie occupée (m²)
-                      {superficieInfo && (
-                        <Text as="span" fontSize="xs" color="green.500" ml={2}>
+                      {superficieInfo ? <Text as="span" fontSize="xs" color="green.500" ml={2}>
                           max {superficieInfo.disponible.toFixed(2)} m² disponibles
-                        </Text>
-                      )}
+                        </Text> : null}
                     </FormLabel>
                     <Input
                       type="number"

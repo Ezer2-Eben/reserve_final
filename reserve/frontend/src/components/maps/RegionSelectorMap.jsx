@@ -151,14 +151,12 @@ const RegionSelectorMap = ({ communesData, onRegionSelect, communeStats = {} }) 
         touchZoom={false}
         attributionControl={false}
       >
-        {communesData && (
-          <GeoJSON
+        {communesData ? <GeoJSON
             key={Math.random()} // Force re-render pour appliquer les nouveaux tooltips
             data={communesData}
             style={styleFeature}
             onEachFeature={onEachFeature}
-          />
-        )}
+          /> : null}
         {markers.map(m => (
           <Marker 
             key={m.id} 
