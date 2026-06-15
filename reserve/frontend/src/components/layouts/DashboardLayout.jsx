@@ -159,8 +159,8 @@ const SidebarContent = ({ onClose, isMobile, ...rest }) => {
       <Flex h="20" alignItems="center" mx="6" mt={2} justifyContent="space-between">
         <HStack spacing={3} animation={`${fadeInUp} 0.5s ease-out 0.1s both`}>
           <Logo size="32px" />
-          <Text fontSize="xl" fontWeight="bold" color="white">
-            Réserves Admin
+          <Text fontSize="md" fontWeight="bold" color="white" title="Gestion du domaine de l'État">
+            Gestion du domaine de l'État
           </Text>
         </HStack>
         <IconButton

@@ -77,16 +77,20 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
     nom: '',
     localisation: '',
     superficie: '',
-    type: '',
+    type: 'ORDINAIRE',
+    codeReserve: '',
+    situationGeographique: '',
     latitude: '',
     longitude: '',
     statut: 'ACTIF',
+    affectation: '',
     zone: '',
   });
   const [showMap, setShowMap] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [reserves, setReserves] = useState([]);
   const [spatialStats, setSpatialStats] = useState(null);
+  const [linkedError, setLinkedError] = useState(null);
 
   const toast = useToast();
 
@@ -99,28 +103,39 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
 
   useEffect(() => {
     if (reserve && isOpen) {
-      const fetchLinkedData = async () => {
+      setLinkedError(null);
+      setLitiges([]);
+      setOccupations([]);
+      setDocuments([]);
+      setAlertes([]);
+      setProjets([]);
+
+      const fetchOne = async (fn, setter, label) => {
+        try {
+          const data = await fn(reserve.id);
+          setter(Array.isArray(data) ? data : []);
+        } catch (err) {
+          console.error(`Erreur chargement ${label}:`, err?.message || err);
+          setter([]);
+        }
+      };
+
+      const loadAll = async () => {
         setLoadingLinked(true);
         try {
-          const [litigesData, occupationsData, documentsData, alertesData, projetsData] = await Promise.all([
-            litigeService.getByReserve(reserve.id).catch(() => []),
-            occupationService.getByReserve(reserve.id).catch(() => []),
-            documentService.getByReserve(reserve.id).catch(() => []),
-            alerteService.getByReserve(reserve.id).catch(() => []),
-            projetService.getByReserve(reserve.id).catch(() => []),
+          await Promise.all([
+            fetchOne((id) => litigeService.getByReserve(id), setLitiges, 'litiges'),
+            fetchOne((id) => occupationService.getByReserve(id), setOccupations, 'occupations'),
+            fetchOne((id) => documentService.getByReserve(id), setDocuments, 'documents'),
+            fetchOne((id) => alerteService.getByReserve(id), setAlertes, 'alertes'),
+            fetchOne((id) => projetService.getByReserve(id), setProjets, 'projets'),
           ]);
-          setLitiges(litigesData);
-          setOccupations(occupationsData);
-          setDocuments(documentsData);
-          setAlertes(alertesData);
-          setProjets(projetsData);
-        } catch (error) {
-          console.error('Erreur chargement des données liées:', error);
         } finally {
           setLoadingLinked(false);
         }
       };
-      fetchLinkedData();
+
+      loadAll();
     }
   }, [reserve, isOpen]);
 
@@ -130,14 +145,15 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
         nom: reserve.nom || '',
         localisation: reserve.localisation || '',
         superficie: reserve.superficie || '',
-        type: reserve.type || '',
+        type: reserve.type || 'ORDINAIRE',
+        codeReserve: reserve.codeReserve || '',
+        situationGeographique: reserve.situationGeographique || '',
         latitude: reserve.latitude || '',
         longitude: reserve.longitude || '',
         statut: reserve.statut || 'ACTIF',
         affectation: reserve.affectation || '',
         zone: reserve.zone || '',
       });
-      
       if (reserve.zone) {
         calculateSpatialStats(reserve.zone);
       }
@@ -146,7 +162,9 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
         nom: '',
         localisation: '',
         superficie: '',
-        type: '',
+        type: 'ORDINAIRE',
+        codeReserve: '',
+        situationGeographique: '',
         latitude: '',
         longitude: '',
         statut: 'ACTIF',
@@ -378,20 +396,24 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                       </FormControl>
 
                       <FormControl>
-                        <FormLabel>Type</FormLabel>
+                        <FormLabel>Type de réserve</FormLabel>
                         <Select
                           name="type"
                           value={formData.type}
                           onChange={handleChange}
-                          placeholder="Sélectionner un type"
                           isDisabled={isReadOnly}
                         >
+                          <option value="ORDINAIRE">Ordinaire (Attribution)</option>
+                          <option value="SPECIALE">Spéciale (Cession)</option>
                           <option value="NATUREL">Naturelle</option>
-                          <option value="ADMINISTRATIF">Administrative</option>
                           <option value="PROTEGE">Protégée</option>
                           <option value="COMMUNAUTAIRE">Communautaire</option>
-                          <option value="PRIVE">Privée</option>
                         </Select>
+                        {formData.type && (
+                          <Badge mt={1} colorScheme={formData.type === 'SPECIALE' ? 'orange' : 'blue'}>
+                            {formData.type === 'SPECIALE' ? '📋 Cession — Places publiques / Marchés' : '📌 Attribution — Réserve ordinaire'}
+                          </Badge>
+                        )}
                       </FormControl>
                     </HStack>
 
@@ -426,6 +448,30 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                             <NumberDecrementStepper />
                           </NumberInputStepper>
                         </NumberInput>
+                      </FormControl>
+                    </HStack>
+
+                    <HStack spacing={4} w="full">
+                      <FormControl>
+                        <FormLabel>Code Réserve</FormLabel>
+                        <Input
+                          name="codeReserve"
+                          value={formData.codeReserve}
+                          onChange={handleChange}
+                          placeholder="Ex: RES-2024-001"
+                          isReadOnly={isReadOnly}
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel>Situation Géographique</FormLabel>
+                        <Input
+                          name="situationGeographique"
+                          value={formData.situationGeographique}
+                          onChange={handleChange}
+                          placeholder="Préfecture, Commune, Région"
+                          isReadOnly={isReadOnly}
+                        />
                       </FormControl>
                     </HStack>
 
@@ -861,6 +907,7 @@ const Reserves = () => {
   const [filterType, setFilterType] = useState('');
   const [filterStatut, setFilterStatut] = useState('');
   const [stats, setStats] = useState(null);
+  const [reservesStats, setReservesStats] = useState({});
 
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const toast = useToast();
@@ -873,6 +920,24 @@ const Reserves = () => {
       setReserves(data);
       setFilteredReserves(data);
       calculateStats(data);
+      
+      // Load stats for all reserves
+      const statsPromises = data.map(async (reserve) => {
+        try {
+          const stats = await reserveService.getStats(reserve.id);
+          return { id: reserve.id, stats };
+        } catch (e) {
+          return { id: reserve.id, stats: { nbDocuments: 0, nbLitiges: 0, nbOccupations: 0, nbAlertes: 0, nbProjets: 0 } };
+        }
+      });
+      
+      const statsResults = await Promise.all(statsPromises);
+      const statsMap = statsResults.reduce((acc, curr) => {
+        acc[curr.id] = curr.stats;
+        return acc;
+      }, {});
+      setReservesStats(statsMap);
+      
     } catch (err) {
       console.error('Erreur chargement réserves:', err);
       setError('Erreur lors du chargement des réserves');
@@ -1166,10 +1231,10 @@ const Reserves = () => {
         <Flex justify="space-between" align="start" flexWrap="wrap" gap={4}>
           <Box>
             <Heading size="lg" color="gray.700" mb={2}>
-              🗺️ Gestion des Réserves (SIG Avancé)
+              🗺️ Gestion du domaine de l'État (SIG Avancé)
             </Heading>
             <Text color="gray.500">
-              Système d'Information Géographique pour la gestion des réserves
+              Système d'Information Géographique pour la gestion du domaine de l'État
             </Text>
           </Box>
           
@@ -1326,6 +1391,7 @@ const Reserves = () => {
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Localisation</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Superficie</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Type</Th>
+                      <Th px={4} py={3} fontWeight="semibold" color="gray.700">Dossier</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Statut</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Zone</Th>
                       <Th px={4} py={3} fontWeight="semibold" color="gray.700">Actions</Th>
@@ -1359,9 +1425,27 @@ const Reserves = () => {
                           </Text>
                         </Td>
                         <Td px={4} py={3}>
-                          <Badge colorScheme="blue" variant="subtle">
-                            {reserve.type}
-                          </Badge>
+                          <VStack align="start" spacing={1}>
+                            <Badge colorScheme={reserve.type === 'SPECIALE' ? 'orange' : 'blue'} variant="subtle">
+                              {reserve.type}
+                            </Badge>
+                            {reserve.type === 'SPECIALE' ? (
+                              <Text fontSize="xs" color="orange.600" fontWeight="bold">CESSION</Text>
+                            ) : (
+                              <Text fontSize="xs" color="blue.600" fontWeight="bold">ATTRIBUTION</Text>
+                            )}
+                          </VStack>
+                        </Td>
+                        <Td px={4} py={3}>
+                          {reservesStats[reserve.id] ? (
+                            <VStack align="start" spacing={1}>
+                              <Text fontSize="xs">📄 {reservesStats[reserve.id].nbDocuments} doc(s)</Text>
+                              <Text fontSize="xs">⚖️ {reservesStats[reserve.id].nbLitiges} litige(s)</Text>
+                              <Text fontSize="xs">🏠 {reservesStats[reserve.id].nbOccupations} occup.</Text>
+                            </VStack>
+                          ) : (
+                            <Spinner size="xs" />
+                          )}
                         </Td>
                         <Td px={4} py={3}>{getStatusBadge(reserve.statut)}</Td>
                         <Td px={4} py={3}>

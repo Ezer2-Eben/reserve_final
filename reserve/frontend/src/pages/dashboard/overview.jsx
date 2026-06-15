@@ -290,7 +290,8 @@ const Overview = () => {
               Vue d'ensemble
             </Heading>
             <Text color="gray.500" fontSize="md">
-              Bienvenue dans votre système de gestion des réserves administratives.
+              Bienvenue dans votre système de gestion du domaine de l'État.
+              Voici un résumé de la situation actuelle de votre patrimoine.
             </Text>
           </Box>
         </HStack>

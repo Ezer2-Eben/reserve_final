@@ -1,6 +1,8 @@
 package com.reserve.admin.controller;
 
+import com.reserve.admin.dto.ReserveStatsDTO;
 import com.reserve.admin.model.Reserve;
+import com.reserve.admin.repository.*;
 import com.reserve.admin.service.ReserveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,21 @@ import java.util.Optional;
 public class ReserveController {
 
     private final ReserveService reserveService;
+
+    @Autowired
+    private DocumentRepository documentRepository;
+
+    @Autowired
+    private LitigeRepository litigeRepository;
+
+    @Autowired
+    private OccupationRepository occupationRepository;
+
+    @Autowired
+    private AlerteRepository alerteRepository;
+
+    @Autowired
+    private ProjetRepository projetRepository;
 
     @Autowired
     public ReserveController(ReserveService reserveService) {
@@ -36,6 +53,28 @@ public class ReserveController {
         Optional<Reserve> reserve = reserveService.getReserveById(id);
         return reserve.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Endpoint de statistiques : retourne les compteurs d'entités liées à une réserve.
+     * Un seul appel API au lieu de 5 — plus robuste et plus rapide.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'SUPER_ADMIN')")
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<ReserveStatsDTO> getReserveStats(@PathVariable Long id) {
+        try {
+            long nbDocuments   = documentRepository.countByReserveId(id);
+            long nbLitiges     = litigeRepository.countByReserveId(id);
+            long nbOccupations = occupationRepository.countByReserveId(id);
+            long nbAlertes     = alerteRepository.countByReserveId(id);
+            long nbProjets     = projetRepository.countByReserveId(id);
+
+            ReserveStatsDTO stats = new ReserveStatsDTO(id, nbDocuments, nbLitiges,
+                    nbOccupations, nbAlertes, nbProjets);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     // ✅ Seul l'ADMIN peut créer une réserve (zone incluse)

@@ -66,7 +66,7 @@ const NotFound = () => {
           </Flex>
 
           <Text fontSize="xs" color="gray.400" mt={8}>
-            Système de gestion des réserves administratives
+            Système de gestion du domaine de l'État
           </Text>
         </VStack>
       </Container>

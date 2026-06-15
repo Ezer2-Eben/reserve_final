@@ -26,8 +26,15 @@ public class Reserve {
     @NotNull(message = "La superficie est obligatoire")
     private Double superficie;
 
-    @NotBlank(message = "Le type est obligatoire")
     private String type;
+
+    // Code unique de la réserve (ex: RES-2024-001)
+    @Column(name = "code_reserve", unique = true)
+    private String codeReserve;
+
+    // Situation géographique (préfecture, commune, région)
+    @Column(name = "situation_geographique")
+    private String situationGeographique;
 
     private Double latitude;
     private Double longitude;
@@ -176,6 +183,34 @@ public class Reserve {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCodeReserve() {
+        return codeReserve;
+    }
+
+    public void setCodeReserve(String codeReserve) {
+        this.codeReserve = codeReserve;
+    }
+
+    public String getSituationGeographique() {
+        return situationGeographique;
+    }
+
+    public void setSituationGeographique(String situationGeographique) {
+        this.situationGeographique = situationGeographique;
+    }
+
+    /**
+     * Retourne le type d'opération selon le type de réserve :
+     * - SPECIALE → CESSION (places publiques, marchés)
+     * - ORDINAIRE → ATTRIBUTION
+     */
+    public String getTypeOperation() {
+        if ("SPECIALE".equalsIgnoreCase(type) || "ADMINISTRATIF_SPECIAL".equalsIgnoreCase(type)) {
+            return "CESSION";
+        }
+        return "ATTRIBUTION";
     }
 
     public String getProprietaire() {

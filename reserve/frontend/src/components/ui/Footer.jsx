@@ -182,7 +182,7 @@ const Footer = () => {
           >
             <HStack spacing={2}>
               <Text fontSize="sm" color={textColor}>
-                © {currentYear} Système de Gestion des Réserves. Tous droits réservés.
+                © {currentYear} Système de Gestion du domaine de l'État. Tous droits réservés.
               </Text>
               <HStack spacing={1}>
                 <Text fontSize="sm" color={textColor}>

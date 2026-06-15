@@ -10,4 +10,5 @@ public interface LitigeRepository extends JpaRepository<Litige, Long> {
     List<Litige> findByReserveId(Long reserveId);
     List<Litige> findByStatut(Litige.StatutLitige statut);
     List<Litige> findByType(Litige.TypeLitige type);
+    long countByReserveId(Long reserveId);
 }

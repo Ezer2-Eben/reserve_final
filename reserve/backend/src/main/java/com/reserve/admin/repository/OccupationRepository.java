@@ -10,4 +10,5 @@ public interface OccupationRepository extends JpaRepository<Occupation, Long> {
     List<Occupation> findByReserveId(Long reserveId);
     List<Occupation> findByStatut(Occupation.StatutOccupation statut);
     List<Occupation> findByTypeOccupation(Occupation.TypeOccupation type);
+    long countByReserveId(Long reserveId);
 }

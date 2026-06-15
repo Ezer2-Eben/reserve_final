@@ -14,7 +14,7 @@ const getAuthHeaders = () => {
 // Configuration axios avec intercepteurs
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -148,14 +148,22 @@ export const reserveService = {
 
   delete: async (id) => {
     try {
-      console.log('Suppression réserve:', id);
       const response = await apiClient.delete(`/reserves/${id}`);
-      console.log('Réponse suppression réserve:', response);
       return response.data;
     } catch (error) {
-      console.error('Erreur dans reserveService.delete:', error);
       throw error;
     }
+  },
+
+  // Retourne les compteurs d'entités liées (documents, litiges, occupations, alertes, projets)
+  getStats: async (reserveId) => {
+    const response = await apiClient.get(`/reserves/${reserveId}/stats`);
+    return response.data;
+  },
+
+  getByReserve: async (reserveId) => {
+    const response = await apiClient.get(`/reserves/${reserveId}`);
+    return response.data;
   },
 };
 

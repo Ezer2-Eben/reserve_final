@@ -16,7 +16,7 @@ export const APP_CONFIG = {
   MAP_ZOOM: 7,
   
   // App Configuration
-  APP_NAME: 'Système de Gestion des Réserves',
+  APP_NAME: 'Système de Gestion du domaine de l\'État',
   VERSION: '2.0.0',
   
   // Feature Flags

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface AlerteRepository  extends JpaRepository<Alerte, Long> {
+public interface AlerteRepository extends JpaRepository<Alerte, Long> {
     List<Alerte> findByReserveId(Long reserveId);
+    long countByReserveId(Long reserveId);
 }
