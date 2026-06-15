@@ -41,7 +41,9 @@ import {
     TabList,
     TabPanels,
     Tab,
-    TabPanel
+    TabPanel,
+    Textarea,
+    Progress
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -70,6 +72,7 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
   const [reserves, setReserves] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingDocs, setPendingDocs] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const toast = useToast();
 
   // Charger les réserves pour le select
@@ -149,7 +152,9 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
       // Upload des documents joints — liés à la réserve ET au projet
       if (pendingDocs.length > 0 && reserveId) {
         try {
-          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile, projetId);
+          setUploadProgress(0);
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile, projetId, setUploadProgress);
+          setUploadProgress(100);
           toast({
             title: `${pendingDocs.length} document(s) joint(s) avec succès`,
             status: 'success',
@@ -162,6 +167,7 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
 
       onSuccess();
       onClose();
+      setUploadProgress(0);
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -289,6 +295,12 @@ const ProjetForm = ({ isOpen, onClose, projet = null, onSuccess }) => {
                 entityLabel="ce projet"
                 onFilesChange={setPendingDocs}
               />
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <FormControl mt={4}>
+                  <FormLabel fontSize="sm" color="brand.600">Envoi des documents en cours ({uploadProgress}%)...</FormLabel>
+                  <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
+                </FormControl>
+              )}
             </VStack>
           </ModalBody>
 

@@ -380,6 +380,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
                     <option value="ARRETE_AFFECTATION">Arrêté d'affectation</option>
                     <option value="DECISION_JUSTICE">Décision de justice</option>
                     <option value="RAPPORT_INSPECTION">Rapport d'inspection</option>
+                    <option value="ACTE_DONATION">Acte de donation</option>
                     <option value="AUTRE">Autre</option>
                   </Select>
                 </FormControl>

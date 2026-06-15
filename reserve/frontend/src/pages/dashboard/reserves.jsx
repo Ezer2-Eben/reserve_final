@@ -81,6 +81,70 @@ import InteractiveMap from '../../components/ui/InteractiveMap';
 import { reserveService, litigeService, occupationService, documentService, alerteService, projetService } from '../../services/apiService';
 import geocodingService from '../../services/geocodingService';
 
+// ==================== UTM CONVERSION ====================
+/**
+ * Converts Latitude/Longitude to UTM coordinates (Zone 31N for Togo region).
+ * Returns {zone, easting, northing} or null if invalid input.
+ */
+const latLonToUTM = (lat, lon) => {
+  if (lat === '' || lon === '' || lat === null || lon === null) return null;
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+  if (isNaN(latNum) || isNaN(lonNum)) return null;
+
+  const a = 6378137.0; // WGS84 semi-major axis
+  const f = 1 / 298.257223563;
+  const b = a * (1 - f);
+  const e2 = (a * a - b * b) / (a * a);
+  const e = Math.sqrt(e2);
+  const k0 = 0.9996;
+
+  const latRad = (latNum * Math.PI) / 180;
+  const lonRad = (lonNum * Math.PI) / 180;
+
+  // Auto-detect zone or force zone 31 for Togo
+  const zoneNumber = Math.floor((lonNum + 180) / 6) + 1;
+  const zoneLon = ((zoneNumber - 1) * 6 - 180 + 3) * (Math.PI / 180);
+
+  const N = a / Math.sqrt(1 - e2 * Math.sin(latRad) ** 2);
+  const T = Math.tan(latRad) ** 2;
+  const C = (e2 / (1 - e2)) * Math.cos(latRad) ** 2;
+  const A = Math.cos(latRad) * (lonRad - zoneLon);
+
+  const M =
+    a *
+    ((1 - e2 / 4 - (3 * e2 ** 2) / 64 - (5 * e2 ** 3) / 256) * latRad -
+      ((3 * e2) / 8 + (3 * e2 ** 2) / 32 + (45 * e2 ** 3) / 1024) * Math.sin(2 * latRad) +
+      ((15 * e2 ** 2) / 256 + (45 * e2 ** 3) / 1024) * Math.sin(4 * latRad) -
+      ((35 * e2 ** 3) / 3072) * Math.sin(6 * latRad));
+
+  const easting =
+    k0 *
+      N *
+      (A +
+        ((1 - T + C) * A ** 3) / 6 +
+        ((5 - 18 * T + T ** 2 + 72 * C - 58 * (e2 / (1 - e2))) * A ** 5) / 120) +
+    500000;
+
+  let northing =
+    k0 *
+    (M +
+      N *
+        Math.tan(latRad) *
+        (A ** 2 / 2 +
+          ((5 - T + 9 * C + 4 * C ** 2) * A ** 4) / 24 +
+          ((61 - 58 * T + T ** 2 + 600 * C - 330 * (e2 / (1 - e2))) * A ** 6) / 720));
+
+  if (latNum < 0) northing += 10000000;
+
+  const hemisphere = latNum >= 0 ? 'N' : 'S';
+  return {
+    zone: `${zoneNumber}${hemisphere}`,
+    easting: Math.round(easting),
+    northing: Math.round(northing),
+  };
+};
+
 // ==================== COMPOSANT FORMULAIRE ====================
 const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = false }) => {
   const [formData, setFormData] = useState({
@@ -143,14 +207,26 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
         setLoadingLinked(true);
         try {
           await Promise.all([
-            fetchOne((id) => litigeService.getByReserve(id), setLitiges, 'litiges'),
-            fetchOne((id) => occupationService.getByReserve(id), setOccupations, 'occupations'),
+            fetchOne(async (id) => {
+              const all = await litigeService.getAll();
+              return all.filter(item => item.reserve && item.reserve.id === id);
+            }, setLitiges, 'litiges'),
+            fetchOne(async (id) => {
+              const all = await occupationService.getAll();
+              return all.filter(item => item.reserve && item.reserve.id === id);
+            }, setOccupations, 'occupations'),
             fetchOne(async (id) => {
               const allDocs = await documentService.getAll();
               return allDocs.filter(d => d.reserve && d.reserve.id === id);
             }, setDocuments, 'documents'),
-            fetchOne((id) => alerteService.getByReserve(id), setAlertes, 'alertes'),
-            fetchOne((id) => projetService.getByReserve(id), setProjets, 'projets'),
+            fetchOne(async (id) => {
+              const all = await alerteService.getAll();
+              return all.filter(item => item.reserve && item.reserve.id === id);
+            }, setAlertes, 'alertes'),
+            fetchOne(async (id) => {
+              const all = await projetService.getAll();
+              return all.filter(item => item.reserve && item.reserve.id === id);
+            }, setProjets, 'projets'),
           ]);
         } finally {
           setLoadingLinked(false);
@@ -511,14 +587,14 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                           onChange={handleChange}
                           isDisabled={isReadOnly}
                         >
-                          <option value="ORDINAIRE">Ordinaire (Attribution)</option>
-                          <option value="SPECIALE">Spéciale (Cession)</option>
+                          <option value="ORDINAIRE">Réserve Administrative Ordinaire</option>
+                          <option value="SPECIALE">Réserve Administrative Spéciale</option>
                           <option value="NATUREL">Naturelle</option>
                           <option value="PROTEGE">Protégée</option>
                           <option value="COMMUNAUTAIRE">Communautaire</option>
                         </Select>
                         {formData.type ? <Badge mt={1} colorScheme={formData.type === 'SPECIALE' ? 'orange' : 'blue'}>
-                            {formData.type === 'SPECIALE' ? '📋 Cession — Places publiques / Marchés' : '📌 Attribution — Réserve ordinaire'}
+                            {formData.type === 'SPECIALE' ? '📋 Spéciale — Places publiques / Marchés' : '📌 Ordinaire — Attribution standard'}
                           </Badge> : null}
                       </FormControl>
                     </HStack>
@@ -556,6 +632,38 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                         </NumberInput>
                       </FormControl>
                     </HStack>
+
+                    {/* Affichage UTM calculé */}
+                    {(() => {
+                      const utm = latLonToUTM(formData.latitude, formData.longitude);
+                      if (!utm) return null;
+                      return (
+                        <Box
+                          w="full"
+                          p={3}
+                          bg="blue.50"
+                          border="1px solid"
+                          borderColor="blue.200"
+                          borderRadius="md"
+                          fontSize="sm"
+                        >
+                          <Text fontWeight="semibold" color="blue.700" mb={1}>
+                            🗺️ Coordonnées UTM (WGS84)
+                          </Text>
+                          <HStack spacing={6} flexWrap="wrap">
+                            <Text color="blue.600">
+                              <strong>Zone :</strong> {utm.zone}
+                            </Text>
+                            <Text color="blue.600">
+                              <strong>Est (E) :</strong> {utm.easting.toLocaleString()} m
+                            </Text>
+                            <Text color="blue.600">
+                              <strong>Nord (N) :</strong> {utm.northing.toLocaleString()} m
+                            </Text>
+                          </HStack>
+                        </Box>
+                      );
+                    })()}
 
                     <HStack spacing={4} w="full">
                       <FormControl>

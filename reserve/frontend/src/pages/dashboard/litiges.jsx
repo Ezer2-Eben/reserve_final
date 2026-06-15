@@ -3,7 +3,7 @@ import {
   HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid,
   Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, VStack,
-  useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber
+  useDisclosure, useToast, Tag, Textarea, Icon, Stat, StatLabel, StatNumber, Progress
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -45,6 +45,7 @@ const Litiges = () => {
   const [loadingViewDocs, setLoadingViewDocs] = useState(false);
   const [pendingDocs, setPendingDocs] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const toast = useToast();
 
   const API_BASE = process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api';
@@ -55,8 +56,8 @@ const Litiges = () => {
     if (litige.reserve?.id) {
       setLoadingViewDocs(true);
       try {
-        const docs = await documentService.getByReserve(litige.reserve.id);
-        setViewDocuments(docs);
+        const allDocs = await documentService.getAll();
+        setViewDocuments(allDocs.filter(d => d.reserve && d.reserve.id === litige.reserve.id));
       } catch {
         setViewDocuments([]);
       } finally {
@@ -173,7 +174,9 @@ const Litiges = () => {
       // Upload des documents joints
       if (pendingDocs.length > 0) {
         try {
-          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile);
+          setUploadProgress(0);
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile, null, setUploadProgress);
+          setUploadProgress(100);
           toast({
             title: `${pendingDocs.length} document(s) joint(s) avec succès`,
             status: 'success',
@@ -183,6 +186,8 @@ const Litiges = () => {
           toast({ title: 'Avertissement', description: "Certains documents n'ont pas pu être uploadés.", status: 'warning', duration: 4000 });
         }
       }
+
+      setUploadProgress(0);
 
       onClose();
       fetchData();
@@ -600,17 +605,23 @@ const Litiges = () => {
                     onChange={(e) => setFormData({ ...formData, procedureJuridique: e.target.value })}
                   />
                 </FormControl>
-
-                <Divider />
-
-                {/* Upload documents */}
-                <InlineDocumentUploader
-                  reserveId={formData.reserve.id}
-                  entityLabel="ce litige"
-                  onFilesChange={setPendingDocs}
-                />
+              
+              <Divider my={4} />
+              <VStack align="stretch" spacing={2}>
+                <Text fontWeight="semibold" fontSize="sm" color="gray.700">
+                  Documents joints
+                </Text>
+                <InlineDocumentUploader onFilesChange={setPendingDocs} />
               </VStack>
-            </ModalBody>
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <FormControl mt={4}>
+                  <FormLabel fontSize="sm" color="brand.600">Envoi des documents en cours ({uploadProgress}%)...</FormLabel>
+                  <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
+                </FormControl>
+              )}
+            </VStack>
+          </ModalBody>
             <ModalFooter>
               <Button variant="ghost" mr={3} onClick={onClose}>Annuler</Button>
               <Button type="submit" colorScheme="brand" isLoading={isSubmitting} loadingText="Enregistrement...">Enregistrer</Button>

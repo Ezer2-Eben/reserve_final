@@ -254,14 +254,14 @@ const LoginPage = () => {
           
           <SlideFade in={true} offsetY="20px" delay={0.2}>
             <Heading size="2xl" lineHeight="1.2">
-              Gestion des <br/>
-              <Text as="span" color="brand.300">réserves administratives</Text>
+              GESTION DE <br/>
+              <Text as="span" color="brand.300">DOMAINES DE L'ETAT</Text>
             </Heading>
           </SlideFade>
           
           <SlideFade in={true} offsetY="20px" delay={0.3}>
             <Text fontSize="lg" opacity={0.9}>
-              Le système unifié de gestion et de cartographie des réserves administratives forestières.
+              Le système unifié de gestion et de cartographie des domaines de l'État.
             </Text>
           </SlideFade>
 

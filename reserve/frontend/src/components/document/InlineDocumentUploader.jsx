@@ -23,6 +23,8 @@ const DOCUMENT_CATEGORIES = [
   { value: 'PLAN_PARCELLAIRE', label: 'Plan parcellaire' },
   { value: 'RAPPORT_EXPERTISE', label: "Rapport d'expertise" },
   { value: 'CORRESPONDANCE', label: 'Correspondance' },
+  { value: 'RAPPORT_INSPECTION', label: 'Rapport d\'inspection' },
+  { value: 'ACTE_DONATION', label: 'Acte de donation' },
   { value: 'PHOTO', label: 'Photo / Image' },
   { value: 'AUTRE', label: 'Autre' },
 ];
@@ -180,10 +182,18 @@ const InlineDocumentUploader = ({ reserveId: _reserveId, entityLabel = 'cet él�
  * @param {number} reserveId - ID de la réserve à associer
  * @param {Function} uploadFileFn - documentService.uploadFile
  * @param {number|null} projetId - (optionnel) ID du projet à associer
+ * @param {Function} onProgress - (optionnel) Callback pour la progression globale
  * @returns {Promise<void>}
  */
-export const uploadPendingDocuments = async (pendingFiles, reserveId, uploadFileFn, projetId = null) => {
-  if (!pendingFiles || pendingFiles.length === 0) return;
+export const uploadPendingDocuments = async (pendingFiles, reserveId, uploadFileFn, projetId = null, onProgress = null) => {
+  if (!pendingFiles || pendingFiles.length === 0) {
+    if (onProgress) onProgress(100);
+    return;
+  }
+  
+  const totalFiles = pendingFiles.length;
+  let completedFiles = 0;
+
   for (const pf of pendingFiles) {
     const formData = new FormData();
     formData.append('file', pf.file);
@@ -192,10 +202,35 @@ export const uploadPendingDocuments = async (pendingFiles, reserveId, uploadFile
     if (projetId) {
       formData.append('projetId', projetId);
     }
+    
     try {
-      await uploadFileFn(formData);
+      // Simulation de progression par fichier (si on veut être très précis, 
+      // il faudrait hooker axios.onUploadProgress, mais ici on simule par palier ou on attend)
+      if (onProgress) {
+         let currentFileProgress = 0;
+         const interval = setInterval(() => {
+            currentFileProgress += 10;
+            if (currentFileProgress > 90) currentFileProgress = 90;
+            const overallProgress = ((completedFiles * 100) + currentFileProgress) / totalFiles;
+            onProgress(Math.round(overallProgress));
+         }, 200);
+         
+         await uploadFileFn(formData);
+         
+         clearInterval(interval);
+      } else {
+         await uploadFileFn(formData);
+      }
+      
+      completedFiles++;
+      if (onProgress) {
+        onProgress(Math.round((completedFiles * 100) / totalFiles));
+      }
     } catch (err) {
       console.error('Erreur upload document:', err);
+      // Même en cas d'erreur, on avance le compteur pour ne pas bloquer la barre
+      completedFiles++;
+      if (onProgress) onProgress(Math.round((completedFiles * 100) / totalFiles));
     }
   }
 };

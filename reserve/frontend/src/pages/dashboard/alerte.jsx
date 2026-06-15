@@ -38,7 +38,8 @@ import {
     Tr,
     useDisclosure,
     useToast,
-    VStack
+    VStack,
+    Progress
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -63,6 +64,7 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
   const [reserves, setReserves] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingDocs, setPendingDocs] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const toast = useToast();
 
   // Charger les réserves pour le select
@@ -138,7 +140,9 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
       // Upload des documents joints
       if (pendingDocs.length > 0 && formData.reserveId) {
         try {
-          await uploadPendingDocuments(pendingDocs, formData.reserveId, documentService.uploadFile);
+          setUploadProgress(0);
+          await uploadPendingDocuments(pendingDocs, formData.reserveId, documentService.uploadFile, null, setUploadProgress);
+          setUploadProgress(100);
           toast({
             title: `${pendingDocs.length} document(s) joint(s) avec succès`,
             status: 'success',
@@ -151,6 +155,7 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
       
       onSuccess();
       onClose();
+      setUploadProgress(0);
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -284,6 +289,12 @@ const AlerteForm = ({ isOpen, onClose, alerte = null, onSuccess, isReadOnly = fa
                     entityLabel="cette alerte"
                     onFilesChange={setPendingDocs}
                   />
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <FormControl mt={4}>
+                      <FormLabel fontSize="sm" color="brand.600">Envoi des documents en cours ({uploadProgress}%)...</FormLabel>
+                      <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
+                    </FormControl>
+                  )}
                 </>
               )}
             </VStack>
@@ -571,10 +582,18 @@ const Alertes = () => {
             <ModalBody>
               <Text>
               Êtes-vous sûr de vouloir supprimer l'alerte "{selectedAlerte?.type}" ?
-                Cette action est irréversible.
               </Text>
+              <InlineDocumentUploader onFilesChange={setPendingDocs} />
+              </VStack>
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <FormControl mt={4}>
+                  <FormLabel fontSize="sm" color="brand.600">Envoi des documents en cours ({uploadProgress}%)...</FormLabel>
+                  <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
+                </FormControl>
+              )}
             </ModalBody>
-            <ModalFooter>
+            <ModalFooter bg="gray.50" borderTop="1px" borderColor="gray.100">
             <Button variant="ghost" mr={3} onClick={onDeleteClose}>
                 Annuler
               </Button>

@@ -79,6 +79,7 @@ const Occupations = () => {
   const [superficieInfo, setSuperficieInfo] = useState(null);
   const [pendingDocs, setPendingDocs] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [formData, setFormData] = useState({
     typeOccupation: 'TEMPORAIRE',
@@ -238,7 +239,9 @@ const Occupations = () => {
       // Upload des documents joints
       if (pendingDocs.length > 0) {
         try {
-          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile);
+          setUploadProgress(0);
+          await uploadPendingDocuments(pendingDocs, reserveId, documentService.uploadFile, null, setUploadProgress);
+          setUploadProgress(100);
           toast({
             title: `${pendingDocs.length} document(s) joint(s) avec succès`,
             status: 'success',
@@ -248,6 +251,8 @@ const Occupations = () => {
           toast({ title: 'Avertissement', description: "Certains documents n'ont pas pu être uploadés.", status: 'warning', duration: 4000 });
         }
       }
+
+      setUploadProgress(0);
 
       onClose();
       fetchData();
@@ -656,6 +661,13 @@ const Occupations = () => {
                   entityLabel="cette occupation"
                   onFilesChange={setPendingDocs}
                 />
+                
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <FormControl mt={4}>
+                    <FormLabel fontSize="sm" color="brand.600">Envoi des documents en cours ({uploadProgress}%)...</FormLabel>
+                    <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
+                  </FormControl>
+                )}
               </VStack>
             </ModalBody>
             <ModalFooter>

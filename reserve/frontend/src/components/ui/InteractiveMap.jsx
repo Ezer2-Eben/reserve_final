@@ -564,20 +564,18 @@ const InteractiveMap = forwardRef((props, ref) => {
     if (!data || !data.features) return;
 
     const regions = {};
-    const prefectures = new Set();
 
     data.features.forEach(feature => {
       const region = feature.properties.NAME_1 || 'Inconnu';
-      const prefecture = feature.properties.NAME_2 || 'Inconnu';
-      
       regions[region] = (regions[region] || 0) + 1;
-      if (prefecture !== 'Inconnu') prefectures.add(prefecture);
     });
 
+    // Utiliser les chiffres officiels du Togo :
+    // 5 régions, 39 préfectures, 117 communes (dont 35 urbaines et 82 semi-urbaines/rurales)
     const stats = {
-      communes: data.features.length,
-      regions: Object.keys(regions).length,
-      prefectures: prefectures.size,
+      communes: 117,
+      regions: 5,
+      prefectures: 39,
       byRegion: regions
     };
 
