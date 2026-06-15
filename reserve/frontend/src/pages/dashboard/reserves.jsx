@@ -7,11 +7,14 @@ import {
     Button,
     Card,
     CardBody,
+    Collapse,
+    Divider,
     Flex,
     FormControl,
     FormLabel,
     Heading,
     HStack,
+    Icon,
     IconButton,
     Input,
     InputGroup,
@@ -28,6 +31,7 @@ import {
     NumberInput,
     NumberInputField,
     NumberInputStepper,
+    Progress,
     Select,
     Spinner,
     Table,
@@ -64,6 +68,12 @@ import {
     FiSearch,
     FiFilter,
     FiDownload,
+    FiPlus,
+    FiUpload,
+    FiFile,
+    FiLink,
+    FiX,
+    FiTrash2,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
@@ -100,6 +110,17 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
   const [projets, setProjets] = useState([]);
   const [loadingLinked, setLoadingLinked] = useState(false);
 
+  // États pour l'ajout de document inline
+  const [showAddDoc, setShowAddDoc] = useState(false);
+  const [docUploadType, setDocUploadType] = useState('local');
+  const [docFile, setDocFile] = useState(null);
+  const [docExternalUrl, setDocExternalUrl] = useState('');
+  const [docNom, setDocNom] = useState('');
+  const [docCategorie, setDocCategorie] = useState('ADMINISTRATIF');
+  const [docDescription, setDocDescription] = useState('');
+  const [docUploadProgress, setDocUploadProgress] = useState(0);
+  const [docUploading, setDocUploading] = useState(false);
+
   useEffect(() => {
     if (reserve && isOpen) {
       setLitiges([]);
@@ -135,7 +156,86 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
 
       loadAll();
     }
+    // Reset doc form when modal opens/closes
+    setShowAddDoc(false);
+    setDocFile(null);
+    setDocExternalUrl('');
+    setDocNom('');
+    setDocCategorie('ADMINISTRATIF');
+    setDocDescription('');
   }, [reserve, isOpen]);
+
+  const refreshDocuments = async () => {
+    if (!reserve) return;
+    try {
+      const data = await documentService.getByReserve(reserve.id);
+      setDocuments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Erreur rechargement documents:', err);
+    }
+  };
+
+  const handleDocUpload = async (e) => {
+    e.preventDefault();
+    if (docUploadType === 'local' && !docFile) {
+      toast({ title: 'Veuillez sélectionner un fichier', status: 'warning', duration: 3000, isClosable: true });
+      return;
+    }
+    if (docUploadType === 'external' && !docExternalUrl) {
+      toast({ title: 'Veuillez saisir une URL', status: 'warning', duration: 3000, isClosable: true });
+      return;
+    }
+    setDocUploading(true);
+    setDocUploadProgress(0);
+    try {
+      if (docUploadType === 'local') {
+        const formData = new FormData();
+        formData.append('file', docFile);
+        formData.append('reserveId', reserve.id);
+        formData.append('nomFichier', docNom || docFile.name.replace(/\.[^/.]+$/, ''));
+        formData.append('categorie', docCategorie);
+        formData.append('description', docDescription);
+        const interval = setInterval(() => {
+          setDocUploadProgress(prev => { if (prev >= 85) { clearInterval(interval); return 85; } return prev + 10; });
+        }, 200);
+        await documentService.uploadFile(formData);
+        clearInterval(interval);
+        setDocUploadProgress(100);
+      } else {
+        await documentService.createExternalDocument({
+          nomFichier: docNom || 'Document externe',
+          url: docExternalUrl,
+          reserveId: reserve.id,
+          categorie: docCategorie,
+          description: docDescription,
+          typeFichier: 'AUTRE',
+        });
+      }
+      toast({ title: '✅ Document ajouté avec succès', status: 'success', duration: 3000, isClosable: true });
+      setShowAddDoc(false);
+      setDocFile(null);
+      setDocExternalUrl('');
+      setDocNom('');
+      setDocDescription('');
+      setDocUploadProgress(0);
+      await refreshDocuments();
+    } catch (err) {
+      toast({ title: 'Erreur lors de l\'ajout', description: err?.response?.data?.error || err.message, status: 'error', duration: 5000, isClosable: true });
+    } finally {
+      setDocUploading(false);
+    }
+  };
+
+  const handleDeleteDocument = async (docId) => {
+    if (!window.confirm('Supprimer ce document ?')) return;
+    try {
+      await documentService.delete(docId);
+      toast({ title: 'Document supprimé', status: 'info', duration: 2000, isClosable: true });
+      await refreshDocuments();
+    } catch (err) {
+      toast({ title: 'Erreur suppression', status: 'error', duration: 3000, isClosable: true });
+    }
+  };
 
   useEffect(() => {
     if (reserve) {
@@ -634,58 +734,228 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
                   </TabPanel> : null}
 
                 {isReadOnly ? <TabPanel>
-                    {loadingLinked ? (
-                      <Flex justify="center" align="center" p={8}>
-                        <Spinner size="lg" color="brand.500" />
-                      </Flex>
-                    ) : documents.length === 0 ? (
-                      <Alert status="info" borderRadius="md">
-                        <AlertIcon />
-                        Aucun document associé à cette réserve.
-                      </Alert>
-                    ) : (
-                      <Box overflowX="auto">
-                        <Table variant="simple" size="sm">
-                          <Thead>
-                            <Tr>
-                              <Th>Nom</Th>
-                              <Th>Catégorie</Th>
-                              <Th>Type</Th>
-                              <Th>Taille</Th>
-                              <Th>Date d'ajout</Th>
-                              <Th>Actions</Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody>
-                            {documents.map((doc) => (
-                              <Tr key={doc.id}>
-                                <Td fontWeight="medium">{doc.nomFichierOriginal || doc.nomFichier}</Td>
-                                <Td>
-                                  <Badge colorScheme="purple">{doc.categorie || 'Non classé'}</Badge>
-                                </Td>
-                                <Td>{doc.typeFichier}</Td>
-                                <Td>{doc.tailleFichier ? `${(doc.tailleFichier / (1024 * 1024)).toFixed(2)} MB` : 'N/A'}</Td>
-                                <Td>{doc.dateUpload ? new Date(doc.dateUpload).toLocaleDateString() : 'N/A'}</Td>
-                                <Td>
-                                  <HStack spacing={2}>
-                                    <IconButton
-                                      size="xs"
-                                      icon={<FiDownload />}
-                                      colorScheme="brand"
-                                      variant="ghost"
-                                      aria-label="Télécharger"
-                                      onClick={() => {
-                                        window.open(`${process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api'}/documents/${doc.id}/download`, '_blank');
-                                      }}
-                                    />
-                                  </HStack>
-                                </Td>
+                    <VStack spacing={4} align="stretch">
+                      {/* Barre d'outils documents */}
+                      <HStack justify="space-between">
+                        <Heading size="sm" color="gray.700">📂 Documents ({documents.length})</Heading>
+                        <Button
+                          size="sm"
+                          leftIcon={showAddDoc ? <Icon as={FiX} /> : <Icon as={FiPlus} />}
+                          colorScheme={showAddDoc ? 'red' : 'teal'}
+                          variant={showAddDoc ? 'ghost' : 'solid'}
+                          onClick={() => { setShowAddDoc(!showAddDoc); setDocUploadProgress(0); }}
+                        >
+                          {showAddDoc ? 'Annuler' : 'Ajouter un document'}
+                        </Button>
+                      </HStack>
+
+                      {/* Formulaire d'ajout inline */}
+                      <Collapse in={showAddDoc} animateOpacity>
+                        <Box
+                          as="form"
+                          onSubmit={handleDocUpload}
+                          p={4}
+                          bg="teal.50"
+                          border="1px solid"
+                          borderColor="teal.200"
+                          borderRadius="lg"
+                        >
+                          <VStack spacing={3} align="stretch">
+                            <Heading size="xs" color="teal.700">➕ Nouveau document</Heading>
+                            <Divider borderColor="teal.200" />
+
+                            {/* Type upload */}
+                            <HStack spacing={3}>
+                              <Button
+                                size="sm"
+                                leftIcon={<Icon as={FiFile} />}
+                                colorScheme={docUploadType === 'local' ? 'teal' : 'gray'}
+                                variant={docUploadType === 'local' ? 'solid' : 'outline'}
+                                onClick={() => setDocUploadType('local')}
+                                type="button"
+                              >
+                                Fichier local
+                              </Button>
+                              <Button
+                                size="sm"
+                                leftIcon={<Icon as={FiLink} />}
+                                colorScheme={docUploadType === 'external' ? 'teal' : 'gray'}
+                                variant={docUploadType === 'external' ? 'solid' : 'outline'}
+                                onClick={() => setDocUploadType('external')}
+                                type="button"
+                              >
+                                URL externe
+                              </Button>
+                            </HStack>
+
+                            <SimpleGrid columns={2} spacing={3}>
+                              <FormControl>
+                                <FormLabel fontSize="xs" fontWeight="bold" color="teal.700">Nom (optionnel)</FormLabel>
+                                <Input
+                                  size="sm"
+                                  value={docNom}
+                                  onChange={e => setDocNom(e.target.value)}
+                                  placeholder={docUploadType === 'local' ? 'Nom du document...' : 'Titre du document...'}
+                                  bg="white"
+                                />
+                              </FormControl>
+
+                              <FormControl>
+                                <FormLabel fontSize="xs" fontWeight="bold" color="teal.700">Catégorie</FormLabel>
+                                <Select
+                                  size="sm"
+                                  value={docCategorie}
+                                  onChange={e => setDocCategorie(e.target.value)}
+                                  bg="white"
+                                >
+                                  <option value="ADMINISTRATIF">📄 Administratif</option>
+                                  <option value="JURIDIQUE">⚖️ Juridique</option>
+                                  <option value="TECHNIQUE">🔧 Technique</option>
+                                  <option value="CARTOGRAPHIQUE">🗺️ Cartographique</option>
+                                  <option value="FINANCIER">💰 Financier</option>
+                                  <option value="LITIGE">⚠️ Litige</option>
+                                  <option value="OCCUPATION">🏠 Occupation</option>
+                                  <option value="AUTRE">📁 Autre</option>
+                                </Select>
+                              </FormControl>
+                            </SimpleGrid>
+
+                            {/* Fichier local */}
+                            {docUploadType === 'local' && (
+                              <FormControl isRequired>
+                                <FormLabel fontSize="xs" fontWeight="bold" color="teal.700">Fichier</FormLabel>
+                                <Input
+                                  size="sm"
+                                  type="file"
+                                  onChange={e => setDocFile(e.target.files[0])}
+                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.zip,.rar"
+                                  bg="white"
+                                />
+                                {docFile && (
+                                  <Text fontSize="xs" color="teal.600" mt={1}>
+                                    📎 {docFile.name} ({(docFile.size / 1024 / 1024).toFixed(2)} MB)
+                                  </Text>
+                                )}
+                              </FormControl>
+                            )}
+
+                            {/* URL externe */}
+                            {docUploadType === 'external' && (
+                              <FormControl isRequired>
+                                <FormLabel fontSize="xs" fontWeight="bold" color="teal.700">URL du document</FormLabel>
+                                <Input
+                                  size="sm"
+                                  type="url"
+                                  value={docExternalUrl}
+                                  onChange={e => setDocExternalUrl(e.target.value)}
+                                  placeholder="https://example.com/document.pdf"
+                                  bg="white"
+                                />
+                              </FormControl>
+                            )}
+
+                            <FormControl>
+                              <FormLabel fontSize="xs" fontWeight="bold" color="teal.700">Description (optionnel)</FormLabel>
+                              <Textarea
+                                size="sm"
+                                value={docDescription}
+                                onChange={e => setDocDescription(e.target.value)}
+                                placeholder="Description du document..."
+                                rows={2}
+                                bg="white"
+                              />
+                            </FormControl>
+
+                            {/* Barre de progression */}
+                            {docUploadProgress > 0 && (
+                              <Box>
+                                <Text fontSize="xs" color="teal.700" mb={1}>Upload : {docUploadProgress}%</Text>
+                                <Progress value={docUploadProgress} colorScheme="teal" size="xs" borderRadius="full" />
+                              </Box>
+                            )}
+
+                            <HStack justify="flex-end">
+                              <Button
+                                size="sm"
+                                type="submit"
+                                colorScheme="teal"
+                                leftIcon={<Icon as={FiUpload} />}
+                                isLoading={docUploading}
+                                loadingText="Envoi..."
+                              >
+                                Enregistrer le document
+                              </Button>
+                            </HStack>
+                          </VStack>
+                        </Box>
+                      </Collapse>
+
+                      {/* Liste des documents */}
+                      {loadingLinked ? (
+                        <Flex justify="center" align="center" p={8}>
+                          <Spinner size="lg" color="teal.500" />
+                        </Flex>
+                      ) : documents.length === 0 ? (
+                        <Alert status="info" borderRadius="md">
+                          <AlertIcon />
+                          Aucun document associé à cette réserve. Cliquez sur &quot;Ajouter un document&quot; pour commencer.
+                        </Alert>
+                      ) : (
+                        <Box overflowX="auto">
+                          <Table variant="simple" size="sm">
+                            <Thead bg="gray.50">
+                              <Tr>
+                                <Th>Nom</Th>
+                                <Th>Catégorie</Th>
+                                <Th>Type</Th>
+                                <Th>Taille</Th>
+                                <Th>Date d'ajout</Th>
+                                <Th>Actions</Th>
                               </Tr>
-                            ))}
-                          </Tbody>
-                        </Table>
-                      </Box>
-                    )}
+                            </Thead>
+                            <Tbody>
+                              {documents.map((doc) => (
+                                <Tr key={doc.id} _hover={{ bg: 'gray.50' }}>
+                                  <Td fontWeight="medium">{doc.nomFichierOriginal || doc.nomFichier}</Td>
+                                  <Td>
+                                    <Badge colorScheme="purple">{doc.categorie || 'Non classé'}</Badge>
+                                  </Td>
+                                  <Td fontSize="xs" color="gray.500">{doc.typeFichier}</Td>
+                                  <Td fontSize="xs">{doc.tailleFichier ? `${(doc.tailleFichier / (1024 * 1024)).toFixed(2)} MB` : 'N/A'}</Td>
+                                  <Td fontSize="xs">{doc.dateUpload ? new Date(doc.dateUpload).toLocaleDateString('fr-FR') : 'N/A'}</Td>
+                                  <Td>
+                                    <HStack spacing={1}>
+                                      <Tooltip label="Télécharger">
+                                        <IconButton
+                                          size="xs"
+                                          icon={<FiDownload />}
+                                          colorScheme="blue"
+                                          variant="ghost"
+                                          aria-label="Télécharger"
+                                          onClick={() => {
+                                            window.open(`${process.env.REACT_APP_API_URL || 'https://reserve-final.onrender.com/api'}/documents/${doc.id}/download`, '_blank');
+                                          }}
+                                        />
+                                      </Tooltip>
+                                      <Tooltip label="Supprimer">
+                                        <IconButton
+                                          size="xs"
+                                          icon={<FiTrash2 />}
+                                          colorScheme="red"
+                                          variant="ghost"
+                                          aria-label="Supprimer"
+                                          onClick={() => handleDeleteDocument(doc.id)}
+                                        />
+                                      </Tooltip>
+                                    </HStack>
+                                  </Td>
+                                </Tr>
+                              ))}
+                            </Tbody>
+                          </Table>
+                        </Box>
+                      )}
+                    </VStack>
                   </TabPanel> : null}
 
                 {isReadOnly ? <TabPanel>
