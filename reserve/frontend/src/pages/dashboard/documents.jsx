@@ -25,6 +25,7 @@ import {
     ModalOverlay,
     Select,
     Spinner,
+    Progress,
     Table,
     Tbody,
     Td,
@@ -148,6 +149,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
   const [uploadType, setUploadType] = useState('local'); // 'local' or 'external'
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const toast = useToast();
 
   // Charger les réserves et projets pour le select
@@ -188,6 +190,7 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
       });
       setSelectedFile(null);
       setUploadType('local');
+      setUploadProgress(0);
     }
   }, [document, isOpen]);
 
@@ -227,7 +230,15 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
           formDataPayload.append('typeFichier', formData.typeFichier || 'AUTRE');
           if (formData.categorie) formDataPayload.append('categorie', formData.categorie);
           
+          setUploadProgress(0);
+          const interval = setInterval(() => {
+            setUploadProgress(prev => { if (prev >= 85) { clearInterval(interval); return 85; } return prev + 10; });
+          }, 200);
+          
           await documentService.uploadFile(formDataPayload);
+          
+          clearInterval(interval);
+          setUploadProgress(100);
         } else {
           const submitData = {
             ...formData,
@@ -413,6 +424,13 @@ const DocumentForm = ({ isOpen, onClose, document = null, onSuccess }) => {
                       URL externe
                     </Button>
                   </HStack>
+                </FormControl>
+              )}
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <FormControl>
+                  <FormLabel fontSize="sm" color="brand.600">Envoi en cours ({uploadProgress}%)...</FormLabel>
+                  <Progress value={uploadProgress} size="sm" colorScheme="brand" hasStripe isAnimated borderRadius="md" />
                 </FormControl>
               )}
 

@@ -145,7 +145,10 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
           await Promise.all([
             fetchOne((id) => litigeService.getByReserve(id), setLitiges, 'litiges'),
             fetchOne((id) => occupationService.getByReserve(id), setOccupations, 'occupations'),
-            fetchOne((id) => documentService.getByReserve(id), setDocuments, 'documents'),
+            fetchOne(async (id) => {
+              const allDocs = await documentService.getAll();
+              return allDocs.filter(d => d.reserve && d.reserve.id === id);
+            }, setDocuments, 'documents'),
             fetchOne((id) => alerteService.getByReserve(id), setAlertes, 'alertes'),
             fetchOne((id) => projetService.getByReserve(id), setProjets, 'projets'),
           ]);
@@ -275,8 +278,15 @@ const ReserveForm = ({ isOpen, onClose, reserve = null, onSuccess, isReadOnly = 
   useEffect(() => {
     const fetchReserves = async () => {
       try {
-        const data = await reserveService.getAll();
-        setReserves(data);
+        const [data, allDocs] = await Promise.all([
+          reserveService.getAll(),
+          documentService.getAll()
+        ]);
+        const reservesWithDocs = data.map(r => ({
+          ...r,
+          documents: allDocs.filter(d => d.reserve && d.reserve.id === r.id)
+        }));
+        setReserves(reservesWithDocs);
       } catch (error) {
         console.error('Erreur chargement réserves:', error);
       }
