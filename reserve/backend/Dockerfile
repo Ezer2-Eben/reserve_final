@@ -2,23 +2,22 @@
 FROM maven:3.9.5-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copier le fichier pom.xml et télécharger les dépendances (mise en cache)
 COPY pom.xml .
-RUN mvn dependency:go-offline
+RUN mvn dependency:go-offline -B
 
-# Copier le code source et compiler
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B
 
-# Étape 2 : Exécution de l'application (Run)
+# Étape 2 : Exécution (Run) — free tier Render ~512 Mo
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copier le JAR généré depuis l'étape de construction
 COPY --from=build /app/target/webApp-reserve-admin-0.0.1-SNAPSHOT.jar app.jar
 
-# Exposer le port (Render écoute le port configuré ou 9190)
-EXPOSE 9190
+# Render injecte PORT ; on écoute 0.0.0.0 via application-prod.properties
+EXPOSE 10000
 
-# Commande de démarrage avec le profil production activé
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xms128m"
+
+# Profil prod + junk de démarrage plus tolérant
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=prod -jar app.jar"]

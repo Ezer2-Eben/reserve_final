@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Health / ping publics (Render health check + cold start)
+                        .requestMatchers("/", "/api/mobile/ping", "/api/health").permitAll()
                         // Endpoints mobiles publics (pas de JWT requis)
                         .requestMatchers("/api/mobile/**").permitAll()
                         // Auth publique

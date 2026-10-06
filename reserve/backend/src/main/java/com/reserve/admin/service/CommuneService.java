@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reserve.admin.model.Commune;
 import com.reserve.admin.repository.CommuneRepository;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CommuneService {
+@Order(100) // Après le fix schéma / admin : ne jamais bloquer le boot Render
+public class CommuneService implements ApplicationRunner {
     
     private final CommuneRepository communeRepository;
     private final ObjectMapper objectMapper;
@@ -27,23 +30,28 @@ public class CommuneService {
         this.communeRepository = communeRepository;
         this.objectMapper = objectMapper;
     }
+
+    @Override
+    public void run(ApplicationArguments args) {
+        initCommunes();
+    }
     
-    @PostConstruct
     @Transactional
     public void initCommunes() {
         try {
             long existingCount = communeRepository.count();
-            log.info("🔍 Vérification des communes dans la base : {} trouvées", existingCount);
+            log.info("Vérification des communes dans la base : {} trouvées", existingCount);
             
             if (existingCount == 0) {
-                log.info("🚀 Chargement initial des données géographiques...");
+                log.info("Chargement initial des données géographiques...");
                 loadCommunesFromGeoJSON();
             } else {
-                log.info("✅ Données géographiques déjà présentes");
+                log.info("Données géographiques déjà présentes");
             }
             
         } catch (Exception e) {
-            log.error("❌ Erreur lors de l'initialisation des communes : {}", e.getMessage(), e);
+            // Non bloquant : l'API doit démarrer même si le GeoJSON est trop lourd (free tier)
+            log.error("Erreur init communes (non bloquant) : {}", e.getMessage(), e);
         }
     }
     
