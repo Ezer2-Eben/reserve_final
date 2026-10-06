@@ -12,13 +12,23 @@ const getAuthHeaders = () => {
 };
 
 // Configuration axios avec intercepteurs
+// Render free tier : cold start 60–120 s → timeout généreux + retries
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 120000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const shouldRetryRequest = (error, retryCount) => {
+  if (retryCount >= 2) return false;
+  if (error.code === 'ECONNABORTED' || !error.response) return true;
+  const status = error.response.status;
+  return status === 502 || status === 503 || status === 504;
+};
 
 // Intercepteur pour ajouter le token d'authentification
 apiClient.interceptors.request.use(
@@ -34,13 +44,20 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Intercepteur pour gérer les erreurs de réponse
+// Retry cold-start Render puis gestion 401 / erreurs
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Logger l'erreur avec le contexte
+  async (error) => {
+    const config = error.config || {};
+    config.__retryCount = config.__retryCount || 0;
+    if (shouldRetryRequest(error, config.__retryCount)) {
+      config.__retryCount += 1;
+      await sleep(4000 * config.__retryCount);
+      return apiClient(config);
+    }
+
     errorHandler.logError(error, 'API Request');
-    
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -48,16 +65,13 @@ apiClient.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    
-    // Rejeter avec une erreur enrichie
-    const enrichedError = errorHandler.createError(
+
+    return Promise.reject(errorHandler.createError(
       errorHandler.analyzeError(error).type,
       errorHandler.analyzeError(error).code,
       errorHandler.getUserMessage(error),
       error
-    );
-    
-    return Promise.reject(enrichedError);
+    ));
   }
 );
 

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: reserve-final
+    runtime: docker
+    plan: free
+    rootDir: reserve/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: main
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_OPTS
+        value: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xms128m
